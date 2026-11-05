@@ -24,6 +24,28 @@
   #dica { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 9;
     background: rgba(30,40,48,0.45); color: #fff; font-size: 15px; padding: 7px 14px;
     border-radius: 16px; white-space: nowrap; transition: opacity 1.2s; pointer-events: none; }
+  /* ---- indicador de carga (a galeria é pesada: ninguém olha para
+     um chão vazio sem saber que as peças estão a chegar) ---- */
+  #carga { position: fixed; left: 50%; top: 42%; transform: translate(-50%,-50%); z-index: 20;
+    background: rgba(24,32,38,0.82); color: #fff; border-radius: 18px; padding: 22px 30px;
+    text-align: center; min-width: 250px; transition: opacity 0.6s; pointer-events: none; }
+  #carga .tit { font-size: 21px; font-weight: bold; margin-bottom: 8px; }
+  #carga .num { font-size: 16px; margin-bottom: 12px; }
+  #carga .barra { width: 250px; height: 12px; background: rgba(255,255,255,0.25);
+    border-radius: 6px; overflow: hidden; }
+  #carga .barra > div { height: 100%; width: 0%; background: #ffd9a0; transition: width 0.3s; }
+  /* ---- controlo da luz: ciclo de 24 horas EDITÁVEL (ordem do
+     Mestre, 04/11/2026 23:23 — dia, tarde, noite e tudo pelo meio) ---- */
+  #luz { position: fixed; left: 14px; top: 14px; z-index: 10;
+    background: rgba(24,32,38,0.72); color: #fff; border-radius: 14px;
+    padding: 9px 12px 11px; font-size: 14px; }
+  #luz .tit2 { font-size: 12.5px; opacity: 0.85; margin-bottom: 6px; }
+  #luz .linha { display: flex; align-items: center; gap: 7px; }
+  #luz button { background: rgba(255,255,255,0.16); color: #fff; border: 1px solid rgba(255,255,255,0.45);
+    border-radius: 9px; font-size: 14px; padding: 5px 11px; cursor: pointer; }
+  #luz button.activo { background: #ffd9a0; color: #24303a; font-weight: bold; }
+  #luz input[type=range] { width: 128px; accent-color: #ffd9a0; }
+  #luzHora { font-weight: bold; min-width: 44px; text-align: right; }
 </style>
 </head>
 <body>
@@ -33,6 +55,10 @@
 <div class="hbtn" id="btnDown">▼</div>
 <div id="btnHome">⌂</div>
 <div id="dica">arrasta no ecrã para olhar · manípulo para andar · ▲▼ para subir/descer</div>
+<div id="carga"><div class="tit">A carregar a sala…</div><div class="num">a preparar</div><div class="barra"><div id="cargaBarra"></div></div></div>
+<div id="luz"><div class="tit2">☀ luz do dia — escolhe a hora</div>
+<div class="linha"><button data-hora="11.5">Dia</button><button data-hora="17.5">Tarde</button><button data-hora="22.5">Noite</button>
+<input id="luzSlider" type="range" min="0" max="24" step="0.1" value="11.5"><span id="luzHora">11:30</span></div></div>
 <script src="vendor/three.min.js"></script>
 <script src="vendor/GLTFLoader.js"></script>
 <script>
@@ -49,10 +75,14 @@
  * coloca a câmara nas vistas padrão. */
 (function () {
   const qs = new URLSearchParams(location.search);
-  const MANIFESTO = qs.get('manifesto') || 'cenas/galeria.json';
+  /* Abertura (ronda de correcção): a GALERIA LEVE — as mesmas 41
+   * peças em versões de telemóvel; a zona de teste está dentro dela.
+   * A galeria fiel abre com ?manifesto=cenas/galeria.json e a zona
+   * de teste sozinha com ?manifesto=cenas/arvore14.json. */
+  const MANIFESTO = qs.get('manifesto') || 'cenas/galeria-leve.json';
   if (qs.get('limpo')) { // modo de captura: sem controlos por cima da vista
     const st = document.createElement('style');
-    st.textContent = '#joy,.hbtn,#btnHome,#dica{display:none!important}';
+    st.textContent = '#joy,.hbtn,#btnHome,#dica,#carga,#luz{display:none!important}';
     document.head.appendChild(st);
   }
 
@@ -63,9 +93,18 @@
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
   renderer.setSize(innerWidth, innerHeight);
   renderer.outputEncoding = THREE.sRGBEncoding;
-  renderer.toneMapping = THREE.NoToneMapping;
+  /* RONDA DE CORRECÇÃO (crítico de Iluminação, 5 GRAVE): ACES em vez
+   * de NoToneMapping — os claros deixam de estourar para branco puro
+   * e os saturados (o magenta da Besta) deixam de clipar para néon. */
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  /* Sombra CONGELADA (crítico de Desempenho): a cena é estática —
+   * o mapa de sombras desenha-se quando a sala fica pronta (e quando
+   * o enquadramento muda) e NÃO a cada frame. */
+  renderer.shadowMap.autoUpdate = false;
+  renderer.shadowMap.needsUpdate = true;
   document.getElementById('sala').appendChild(renderer.domElement);
   try {
     const gl = renderer.getContext();
@@ -82,9 +121,15 @@
     renderer.setSize(innerWidth, innerHeight);
   });
 
-  /* ---- luz de dia, forte e uniforme ---- */
-  scene.add(new THREE.HemisphereLight(0xeaf4ff, 0xcfc8b8, 0.95));
-  const sol = new THREE.DirectionalLight(0xfff1da, 1.1);
+  /* ---- luz de dia (REBALANCEADA na ronda de correcção) ----
+   * Antes: hemisférica 0,95 + sol 1,1 + preenchimento 0,3 = soma
+   * 2,35 sem tone mapping — chão estourado e costas tão claras como
+   * a frente (o preenchimento vinha de trás). Agora: hemisférica
+   * 0,45, sol 1,15, preenchimento fraco (0,12) e DA FRENTE — as
+   * costas ficam honestamente mais escuras que a frente. */
+  const hemi = new THREE.HemisphereLight(0xeaf4ff, 0xcfc8b8, 0.45);
+  scene.add(hemi);
+  const sol = new THREE.DirectionalLight(0xfff1da, 1.15);
   sol.position.set(18, 26, 12);
   sol.castShadow = true;
   sol.shadow.mapSize.set(2048, 2048);
@@ -93,9 +138,80 @@
   sol.shadow.camera.far = 80;
   sol.shadow.bias = -0.0004;
   scene.add(sol);
-  const enche = new THREE.DirectionalLight(0xdfeaff, 0.3);
-  enche.position.set(-12, 10, -14);
+  const enche = new THREE.DirectionalLight(0xdfeaff, 0.12);
+  enche.position.set(-14, 9, 16);
   scene.add(enche);
+
+  /* ---- CICLO DE 24 HORAS EDITÁVEL (acrescento do Mestre,
+   * 04/11/2026 23:23: «configurar se eu quero de dia, se eu quero
+   * de noite, se eu quero de tarde — todo o ciclo de iluminação
+   * de 24 horas»). Botões Dia/Tarde/Noite + cursor das 24 h.
+   * A luz CORRIGIDA vale em todo o ciclo: às 11:30 os valores são
+   * EXACTAMENTE os da correcção (fundo claro · hemisférica 0,45 ·
+   * sol 1,15 · preenchimento 0,12, com ACES e receiveShadow).
+   * A sombra congelada redesenha-se UMA vez a cada mudança de
+   * hora (o sol mexeu-se), nunca a cada frame. Protocolo de
+   * captura: window.__salaHora(h) muda a hora e devolve-a. */
+  const PARAGENS = [ // [hora, fundo, hemiInt, solInt, solCor, encheInt]
+    [0.0,  0x0d1522, 0.12, 0.22, 0xb9ccff, 0.03],
+    [5.0,  0x131e2e, 0.13, 0.22, 0xb9ccff, 0.03],
+    [6.5,  0x707d8a, 0.22, 0.38, 0xffb27a, 0.05],
+    [8.0,  0xc3d2dc, 0.36, 0.85, 0xffdcae, 0.09],
+    [11.5, 0xdfe7ec, 0.45, 1.15, 0xfff1da, 0.12],
+    [16.0, 0xe4e5da, 0.44, 1.05, 0xffe9c4, 0.11],
+    [18.0, 0xe8d9bd, 0.38, 0.72, 0xffc987, 0.09],
+    [19.5, 0x77687a, 0.24, 0.30, 0xff9a55, 0.05],
+    [21.0, 0x111a29, 0.12, 0.22, 0xb9ccff, 0.03],
+    [24.0, 0x0d1522, 0.12, 0.22, 0xb9ccff, 0.03]
+  ];
+  function paramsHora(h) {
+    let i = 0;
+    while (i < PARAGENS.length - 2 && PARAGENS[i + 1][0] <= h) i++;
+    const A = PARAGENS[i], B = PARAGENS[i + 1];
+    const f = THREE.MathUtils.clamp((h - A[0]) / (B[0] - A[0]), 0, 1);
+    const cor = idx => new THREE.Color(A[idx]).lerp(new THREE.Color(B[idx]), f);
+    const num = idx => A[idx] + (B[idx] - A[idx]) * f;
+    return { fundo: cor(1), hemi: num(2), sol: num(3), solCor: cor(4), enche: num(5) };
+  }
+  let horaActual = 11.5;
+  function posicionarSol() {
+    const c = sol.target.position, h = horaActual;
+    let dx, dy, dz;
+    if (h > 5.8 && h < 19.8) { // dia: arco calibrado — às 11:30 dá (26, 38, 17)
+      const el = THREE.MathUtils.degToRad(Math.max(7, 51 - Math.pow(h - 11.5, 2) * 1.05));
+      const az = THREE.MathUtils.degToRad(58.3 + (h - 11.5) * 11);
+      const R = 49;
+      dx = R * Math.cos(el) * Math.sin(az); dy = R * Math.sin(el); dz = R * Math.cos(el) * Math.cos(az);
+    } else { dx = -24; dy = 38; dz = -14; } // noite: lua alta, fraca e azulada
+    sol.position.set(c.x + dx, dy, c.z + dz);
+  }
+  function aplicarHora(h) {
+    horaActual = ((+h % 24) + 24) % 24;
+    const p = paramsHora(horaActual);
+    scene.background.copy(p.fundo);
+    hemi.intensity = p.hemi;
+    sol.intensity = p.sol; sol.color.copy(p.solCor);
+    enche.intensity = p.enche;
+    posicionarSol();
+    renderer.shadowMap.needsUpdate = true;
+    const hh = Math.floor(horaActual), mm = Math.floor((horaActual - hh) * 60);
+    const elH = document.getElementById('luzHora');
+    if (elH) elH.textContent = String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
+    const elS = document.getElementById('luzSlider');
+    if (elS && document.activeElement !== elS) elS.value = horaActual;
+    document.querySelectorAll('#luz button').forEach(b =>
+      b.classList.toggle('activo', Math.abs(parseFloat(b.dataset.hora) - horaActual) < 0.05));
+    stats.hora = horaActual;
+    return horaActual;
+  }
+  window.__salaHora = aplicarHora;
+  (function painelLuz() {
+    const slider = document.getElementById('luzSlider');
+    if (slider) slider.addEventListener('input', () => aplicarHora(parseFloat(slider.value)));
+    document.querySelectorAll('#luz button').forEach(b =>
+      b.addEventListener('click', () => aplicarHora(parseFloat(b.dataset.hora))));
+    aplicarHora(11.5); // abre em dia claro
+  })();
 
   /* ---- chão neutro claro com grelha de metros (textura desenhada) ---- */
   let TAM = 70; // metros de chão (o manifesto pode pedir outro tamanho)
@@ -315,6 +431,25 @@
     scene.add(grp);
   }
 
+  /* ---- indicador de carga: peças contadas uma a uma ---- */
+  const elCarga = document.getElementById('carga');
+  const elCargaNum = elCarga.querySelector('.num');
+  const elCargaBarra = document.getElementById('cargaBarra');
+  let cargaFeitas = 0, cargaTotal = 0;
+  function mostraCarga() {
+    if (!cargaTotal) { elCargaNum.textContent = 'a preparar'; return; }
+    elCargaNum.textContent = cargaFeitas + ' de ' + cargaTotal + ' peças';
+    elCargaBarra.style.width = Math.round(100 * cargaFeitas / cargaTotal) + '%';
+  }
+  function escondeCarga() { elCarga.style.opacity = '0'; setTimeout(() => { elCarga.style.display = 'none'; }, 700); }
+  function salaPronta() {
+    /* cena completa e estática: desenha o mapa de sombras UMA vez
+     * (já enquadrado ao conteúdo, abaixo) e congela-o. */
+    renderer.shadowMap.needsUpdate = true;
+    stats.pronto = true;
+    escondeCarga();
+  }
+
   /* ---- carregar o manifesto ---- */
   fetch(MANIFESTO).then(r => r.json()).then(man => {
     if (man.chao) TAM = man.chao;
@@ -326,8 +461,10 @@
     if (man.regua) regua(man.regua.pos[0], man.regua.pos[1], man.regua.altura || 15);
     const loader = new THREE.GLTFLoader();
     let pendentes = man.itens.length;
+    cargaTotal = pendentes; cargaFeitas = 0; mostraCarga();
     man.itens.forEach(item => {
       loader.load(item.ficheiro, gltf => {
+        cargaFeitas++; mostraCarga();
         const raiz = gltf.scene;
         const reg = { nome: item.nome, ficheiro: item.ficheiro };
         let caixaVinc = new THREE.Box3().setFromObject(raiz);
@@ -354,7 +491,10 @@
         if (item.rotY) grupo.rotation.y = item.rotY;
         const ped = item.pedestal || 0;
         grupo.position.set(item.pos[0], ped, item.pos[1]);
-        grupo.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = false; } });
+        /* receiveShadow=true (crítico de Iluminação): sem ele os
+         * ramos não sombreiam o tronco nem a copa sombreia a base —
+         * tudo o mesmo cinzento plano. */
+        grupo.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
         scene.add(grupo);
         if (ped > 0) {
           const base = new THREE.Mesh(new THREE.BoxGeometry(1.15, ped, 1.15),
@@ -385,9 +525,9 @@
             const c = uniao.getCenter(new THREE.Vector3());
             const s = uniao.getSize(new THREE.Vector3());
             const raio = Math.max(s.x, s.z) / 2 + 4;
-            sol.position.set(c.x + 26, 38, c.z + 17);
             sol.target.position.set(c.x, 0, c.z);
             scene.add(sol.target);
+            posicionarSol(); // sol a 49 m do centro do conteúdo, na hora actual do ciclo
             sol.shadow.camera.left = -raio; sol.shadow.camera.right = raio;
             sol.shadow.camera.top = raio; sol.shadow.camera.bottom = -raio;
             sol.shadow.camera.updateProjectionMatrix();
@@ -395,15 +535,16 @@
             if (sol.shadow.map) { sol.shadow.map.dispose(); sol.shadow.map = null; }
             stats.sombra = { centro: [+c.x.toFixed(1), +c.z.toFixed(1)], raio_m: +raio.toFixed(1), mapa: 4096 };
           } catch (e) { stats.erros.push('sombra: ' + e.message); }
-          stats.pronto = true;
+          salaPronta();
         }
       }, undefined, err => {
+        cargaFeitas++; mostraCarga();
         stats.erros.push(item.ficheiro + ': ' + (err && err.message || 'erro de carga'));
-        if (--pendentes === 0) stats.pronto = true;
+        if (--pendentes === 0) salaPronta();
       });
     });
     window.__salaVista(qs.get('vista') || 'tres-quartos');
-  }).catch(e => { stats.erros.push('manifesto: ' + e.message); stats.pronto = true; });
+  }).catch(e => { stats.erros.push('manifesto: ' + e.message); salaPronta(); });
 })();
 </script>
 </body>
