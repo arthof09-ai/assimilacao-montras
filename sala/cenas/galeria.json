@@ -1,0 +1,740 @@
+{
+ "nome": "galeria — tudo o que a casa já fez de modelagem 3D",
+ "chao": 130,
+ "alvoVista": [
+  -30.0,
+  20.514963031870593
+ ],
+ "regua": {
+  "pos": [
+   -35.5,
+   19.714963031870592
+  ],
+  "altura": 15
+ },
+ "itens": [
+  {
+   "ficheiro": "modelos/galeria/arvore-morta-1.glb",
+   "nome": "Árvore Morta 1 — adoptada",
+   "etiqueta": "Árvore Morta 1 — adoptada",
+   "pos": [
+    -48.29,
+    -39.64
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "arvores",
+   "medidas_m": [
+    6.15,
+    9.5,
+    5.75
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/arvore-morta-2.glb",
+   "nome": "Árvore Morta 2 — adoptada · mãe da gigante de 14 m",
+   "etiqueta": "Árvore Morta 2 — adoptada · mãe da gigante de 14 m",
+   "pos": [
+    -38.45,
+    -39.64
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "arvores",
+   "medidas_m": [
+    6.73,
+    11.49,
+    6.38
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/arvore-inclinada.glb",
+   "nome": "Árvore Inclinada — forma nova",
+   "etiqueta": "Árvore Inclinada — forma nova",
+   "pos": [
+    -27.94,
+    -39.64
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "arvores",
+   "medidas_m": [
+    7.49,
+    9.5,
+    6.12
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/arvore-altafina.glb",
+   "nome": "Árvore Alta e Fina — forma nova",
+   "etiqueta": "Árvore Alta e Fina — forma nova",
+   "pos": [
+    -18.77,
+    -39.64
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "arvores",
+   "medidas_m": [
+    4.04,
+    16.66,
+    3.83
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/arvore-toco.glb",
+   "nome": "Toco — forma nova",
+   "etiqueta": "Toco — forma nova",
+   "pos": [
+    -12.43,
+    -39.64
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "arvores",
+   "medidas_m": [
+    1.83,
+    3.11,
+    1.84
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/arvore-morta-3-megakit.glb",
+   "nome": "Árvore Morta 3 (MegaKit) — adaptada",
+   "etiqueta": "Árvore Morta 3 (MegaKit) — adaptada",
+   "pos": [
+    -4.92,
+    -39.64
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "arvores",
+   "medidas_m": [
+    6.39,
+    13.28,
+    6.43
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/pinheiro-andares.glb",
+   "nome": "Pinheiro de Andares — corrigido e aprovado",
+   "etiqueta": "Pinheiro de Andares — corrigido e aprovado",
+   "pos": [
+    4.51,
+    -39.64
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "arvores",
+   "medidas_m": [
+    5.67,
+    7.41,
+    5.37
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/pinheiro-alto.glb",
+   "nome": "Pinheiro Alto — corrigido e aprovado",
+   "etiqueta": "Pinheiro Alto — corrigido e aprovado",
+   "pos": [
+    13.64,
+    -39.64
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "arvores",
+   "medidas_m": [
+    5.8,
+    10.24,
+    5.37
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/arvore-morta-4-reprovada.glb",
+   "nome": "Árvore Morta 4 — REPROVADA pelo olho dele (galhos para baixo)",
+   "etiqueta": "Árvore Morta 4 — REPROVADA pelo olho dele (galhos para baixo)",
+   "pos": [
+    23.92,
+    -39.64
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "arvores",
+   "medidas_m": [
+    7.96,
+    12.77,
+    7.73
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/arvore-morta-5-reprovada.glb",
+   "nome": "Árvore Morta 5 (MegaKit) — REPROVADA pelo olho dele (galhos para baixo)",
+   "etiqueta": "Árvore Morta 5 (MegaKit) — REPROVADA pelo olho dele (galhos para baixo)",
+   "pos": [
+    35.48,
+    -39.64
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "arvores",
+   "medidas_m": [
+    8.36,
+    16.44,
+    8.41
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/torcida-seca-reprovada.glb",
+   "nome": "Torcida Seca — REPROVADA pela forma",
+   "etiqueta": "Torcida Seca — REPROVADA pela forma",
+   "pos": [
+    47.21,
+    -39.64
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "arvores",
+   "medidas_m": [
+    8.3,
+    17.76,
+    8.72
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/rocha-media-1.glb",
+   "nome": "Rocha Média 1 — adoptada",
+   "etiqueta": "Rocha Média 1 — adoptada",
+   "pos": [
+    -26.93,
+    -28.22
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "rochas",
+   "medidas_m": [
+    3.23,
+    2.26,
+    2.99
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/rocha-media-2.glb",
+   "nome": "Rocha Média 2 — adoptada",
+   "etiqueta": "Rocha Média 2 — adoptada",
+   "pos": [
+    -20.4,
+    -28.22
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "rochas",
+   "medidas_m": [
+    3.05,
+    1.9,
+    2.48
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/rocha-media-3.glb",
+   "nome": "Rocha Média 3 — adoptada",
+   "etiqueta": "Rocha Média 3 — adoptada",
+   "pos": [
+    -13.76,
+    -28.22
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "rochas",
+   "medidas_m": [
+    3.42,
+    2.32,
+    3.48
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/rocha-espigao.glb",
+   "nome": "Rocha Espigão — forma nova",
+   "etiqueta": "Rocha Espigão — forma nova",
+   "pos": [
+    -7.4,
+    -28.22
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "rochas",
+   "medidas_m": [
+    2.51,
+    4.63,
+    2.5
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/rocha-laje.glb",
+   "nome": "Rocha Laje — forma nova",
+   "etiqueta": "Rocha Laje — forma nova",
+   "pos": [
+    -0.46,
+    -28.22
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "rochas",
+   "medidas_m": [
+    4.57,
+    0.72,
+    3.72
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/rocha-crista.glb",
+   "nome": "Rocha Crista — forma nova",
+   "etiqueta": "Rocha Crista — forma nova",
+   "pos": [
+    8.77,
+    -28.22
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "rochas",
+   "medidas_m": [
+    7.1,
+    1.85,
+    2.39
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/rocha-parfundido.glb",
+   "nome": "Rocha Par Fundido — forma nova",
+   "etiqueta": "Rocha Par Fundido — forma nova",
+   "pos": [
+    17.98,
+    -28.22
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "rochas",
+   "medidas_m": [
+    4.53,
+    2.47,
+    3.48
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/rocha-grande-325.glb",
+   "nome": "Rocha Grande 3,25 m — nascida grande · aprovada por ele",
+   "etiqueta": "Rocha Grande 3,25 m — nascida grande · aprovada por ele",
+   "pos": [
+    26.1,
+    -28.22
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "rochas",
+   "medidas_m": [
+    4.9,
+    3.25,
+    3.65
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/monolito-01.glb",
+   "nome": "Monolito 01 — pintado",
+   "etiqueta": "Monolito 01 — pintado",
+   "pos": [
+    -9.08,
+    -20.36
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "monolitos",
+   "medidas_m": [
+    1.46,
+    2.61,
+    1.6
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/monolito-02.glb",
+   "nome": "Monolito 02 — pintado (o piloto)",
+   "etiqueta": "Monolito 02 — pintado (o piloto)",
+   "pos": [
+    -4.34,
+    -20.36
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "monolitos",
+   "medidas_m": [
+    1.22,
+    3.87,
+    1.15
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/monolito-03.glb",
+   "nome": "Monolito 03 — pintado",
+   "etiqueta": "Monolito 03 — pintado",
+   "pos": [
+    0.32,
+    -20.36
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "monolitos",
+   "medidas_m": [
+    1.3,
+    3.14,
+    1.46
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/monolito-04.glb",
+   "nome": "Monolito 04 — pintado",
+   "etiqueta": "Monolito 04 — pintado",
+   "pos": [
+    4.93,
+    -20.36
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "monolitos",
+   "medidas_m": [
+    1.12,
+    4.25,
+    1.1
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/suporte-tocha.glb",
+   "nome": "Suporte de Tocha",
+   "etiqueta": "Suporte de Tocha",
+   "pos": [
+    9.35,
+    -20.36
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "monolitos",
+   "medidas_m": [
+    0.92,
+    1.27,
+    0.96
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/arenito.glb",
+   "nome": "Arenito — laje",
+   "etiqueta": "Arenito — laje",
+   "pos": [
+    -13.18,
+    -12.5
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "minerais",
+   "medidas_m": [
+    4.57,
+    0.72,
+    3.72
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/basalto.glb",
+   "nome": "Basalto — espigão",
+   "etiqueta": "Basalto — espigão",
+   "pos": [
+    -6.24,
+    -12.5
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "minerais",
+   "medidas_m": [
+    2.51,
+    4.63,
+    2.5
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/pedra-ferro.glb",
+   "nome": "Pedra de Ferro",
+   "etiqueta": "Pedra de Ferro",
+   "pos": [
+    0.12,
+    -12.5
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "minerais",
+   "medidas_m": [
+    3.42,
+    2.32,
+    3.48
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/granito.glb",
+   "nome": "Granito",
+   "etiqueta": "Granito",
+   "pos": [
+    6.94,
+    -12.5
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "minerais",
+   "medidas_m": [
+    3.42,
+    2.32,
+    3.48
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/quartzo.glb",
+   "nome": "Quartzo Claro",
+   "etiqueta": "Quartzo Claro",
+   "pos": [
+    13.76,
+    -12.5
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "minerais",
+   "medidas_m": [
+    3.42,
+    2.32,
+    3.48
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/besta-fiel.glb",
+   "nome": "Besta Cristalina — versão FIEL (a que entra no jogo)",
+   "etiqueta": "Besta Cristalina — versão FIEL (a que entra no jogo)",
+   "pos": [
+    -14.38,
+    -4.45
+   ],
+   "rotY": -0.6,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "criaturas",
+   "medidas_m": [
+    1.98,
+    1.0,
+    1.97
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/besta-cinza.glb",
+   "nome": "Besta Cristalina — versão cinza azulada (alternativa aprovada)",
+   "etiqueta": "Besta Cristalina — versão cinza azulada (alternativa aprovada)",
+   "pos": [
+    -9.0,
+    -4.45
+   ],
+   "rotY": -0.6,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "criaturas",
+   "medidas_m": [
+    1.98,
+    1.0,
+    1.97
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/besta-lendaria.glb",
+   "nome": "Besta — forma lendária, sem pintura (MT-1 M1)",
+   "etiqueta": "Besta — forma lendária, sem pintura (MT-1 M1)",
+   "pos": [
+    -3.62,
+    -4.45
+   ],
+   "rotY": -0.6,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "criaturas",
+   "medidas_m": [
+    1.98,
+    1,
+    1.97
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/besta-leve.glb",
+   "nome": "Besta — forma leve curada, sem pintura (MT-1 M2)",
+   "etiqueta": "Besta — forma leve curada, sem pintura (MT-1 M2)",
+   "pos": [
+    1.76,
+    -4.45
+   ],
+   "rotY": -0.6,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "criaturas",
+   "medidas_m": [
+    1.98,
+    1.0,
+    1.97
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/orc-lendario.glb",
+   "nome": "Orc — forma lendária (MT-1 P1 · peça de teste)",
+   "etiqueta": "Orc — forma lendária (MT-1 P1 · peça de teste)",
+   "pos": [
+    6.48,
+    -4.45
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "criaturas",
+   "medidas_m": [
+    0.66,
+    1,
+    0.69
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/orc-leve.glb",
+   "nome": "Orc — forma leve curada (MT-1 P2 · peça de teste)",
+   "etiqueta": "Orc — forma leve curada (MT-1 P2 · peça de teste)",
+   "pos": [
+    10.54,
+    -4.45
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "criaturas",
+   "medidas_m": [
+    0.66,
+    1.0,
+    0.69
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/capanga-s7.glb",
+   "nome": "Capanga — geração s7 (forma reprovada na régua)",
+   "etiqueta": "Capanga — geração s7 (forma reprovada na régua)",
+   "pos": [
+    14.82,
+    -4.45
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "criaturas",
+   "medidas_m": [
+    1.1,
+    1.0,
+    0.3
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/espada-longa.glb",
+   "nome": "Espada Longa — forma SEM pintura (a textura é um ficheiro externo do pacote e não está na casa)",
+   "etiqueta": "Espada Longa — forma SEM pintura (a textura é um ficheiro externo do pacote e não está na casa)",
+   "pos": [
+    -2.0,
+    2.02
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0.9,
+   "familia": "itens",
+   "medidas_m": [
+    0.04,
+    1.11,
+    0.24
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/bau.glb",
+   "nome": "Baú — forma SEM pintura (a textura é um ficheiro externo do pacote e não está na casa)",
+   "etiqueta": "Baú — forma SEM pintura (a textura é um ficheiro externo do pacote e não está na casa)",
+   "pos": [
+    1.72,
+    2.02
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0.9,
+   "familia": "itens",
+   "medidas_m": [
+    0.6,
+    0.3,
+    0.58
+   ]
+  },
+  {
+   "ficheiro": "modelos/Arvore-Gigante-14m.glb",
+   "nome": "TESTE — Árvore-Gigante de 14,00 m",
+   "etiqueta": "TESTE — Árvore-Gigante de 14,00 m (mãe: Árvore Morta 2, ×1,21864)",
+   "pos": [
+    -30.0,
+    20.514963031870593
+   ],
+   "rotY": 0.4,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "teste"
+  },
+  {
+   "ficheiro": "modelos/besta-pintada-fiel.glb",
+   "nome": "TESTE — Besta fiel ao lado",
+   "etiqueta": "Besta Cristalina fiel — ao lado da gigante",
+   "pos": [
+    -25.5,
+    22.114963031870595
+   ],
+   "rotY": -0.6,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "teste"
+  },
+  {
+   "ficheiro": "modelos/capanga-knight.glb",
+   "nome": "TESTE — Humanoide de 1,80 m",
+   "etiqueta": "Pessoa de 1,80 m — para comparar o tamanho",
+   "pos": [
+    -27.9,
+    22.814963031870594
+   ],
+   "rotY": 0.2,
+   "alturaAlvo": 1.8,
+   "pedestal": 0,
+   "familia": "teste"
+  }
+ ]
+}

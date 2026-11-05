@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Sala de Provas Clara — Oficina3D</title>
+<style>
+  html, body { margin: 0; padding: 0; overflow: hidden; background: #dfe7ec; touch-action: none;
+    font-family: sans-serif; -webkit-user-select: none; user-select: none; }
+  #sala { position: fixed; inset: 0; }
+  canvas { display: block; }
+  /* ---- controlos GRANDES e óbvios (só controlos — nada de painéis) ---- */
+  #joy { position: fixed; left: 22px; bottom: 22px; width: 132px; height: 132px; border-radius: 50%;
+    background: rgba(30,40,48,0.30); border: 2px solid rgba(255,255,255,0.55); z-index: 10; }
+  #joyNub { position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; border-radius: 50%;
+    background: rgba(255,255,255,0.85); transform: translate(-50%,-50%); }
+  .hbtn { position: fixed; right: 22px; width: 68px; height: 68px; border-radius: 50%; z-index: 10;
+    background: rgba(30,40,48,0.30); border: 2px solid rgba(255,255,255,0.55);
+    color: #fff; font-size: 30px; line-height: 64px; text-align: center; }
+  #btnUp { bottom: 108px; } #btnDown { bottom: 26px; }
+  #btnHome { position: fixed; right: 22px; top: 18px; width: 56px; height: 56px; border-radius: 50%;
+    z-index: 10; background: rgba(30,40,48,0.30); border: 2px solid rgba(255,255,255,0.55);
+    color: #fff; font-size: 26px; line-height: 52px; text-align: center; }
+  #dica { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 9;
+    background: rgba(30,40,48,0.45); color: #fff; font-size: 15px; padding: 7px 14px;
+    border-radius: 16px; white-space: nowrap; transition: opacity 1.2s; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="sala"></div>
+<div id="joy"><div id="joyNub"></div></div>
+<div class="hbtn" id="btnUp">▲</div>
+<div class="hbtn" id="btnDown">▼</div>
+<div id="btnHome">⌂</div>
+<div id="dica">arrasta no ecrã para olhar · manípulo para andar · ▲▼ para subir/descer</div>
+<script src="vendor/three.min.js"></script>
+<script src="vendor/GLTFLoader.js"></script>
+<script>
+/* SALA DE PROVAS CLARA — infra-estrutura permanente da casa.
+ * Um lugar pequeno, CLARO, só para ver modelos 3D de verdade (o mapa de
+ * testes do jogo é escuro e a câmara longe — ordem do Mestre,
+ * 04/11/2026 20:06). REFINO dele (20:14): «um mini jogo onde eu possa
+ * andar com a câmera livremente na sala, para analisar tudo» — a sala
+ * é ANDÁVEL: arrastar para olhar, manípulo/WASD para andar, ▲▼ para
+ * subir/descer. Aceita qualquer GLB da casa por manifesto JSON:
+ * ?manifesto=cenas/<nome>.json — ver README-SALA.md.
+ * Protocolo de captura (o da casa, invisível): window.__salaStats
+ * .pronto quando tudo carregou e foi medido; window.__salaVista(nome)
+ * coloca a câmara nas vistas padrão. */
+(function () {
+  const qs = new URLSearchParams(location.search);
+  const MANIFESTO = qs.get('manifesto') || 'cenas/galeria.json';
+  if (qs.get('limpo')) { // modo de captura: sem controlos por cima da vista
+    const st = document.createElement('style');
+    st.textContent = '#joy,.hbtn,#btnHome,#dica{display:none!important}';
+    document.head.appendChild(st);
+  }
+
+  const stats = { pronto: false, manifesto: MANIFESTO, itens: [], erros: [] };
+  window.__salaStats = stats;
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.NoToneMapping;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  document.getElementById('sala').appendChild(renderer.domElement);
+  try {
+    const gl = renderer.getContext();
+    const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+    stats.renderer = dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
+  } catch (e) { stats.renderer = 'erro: ' + e.message; }
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xdfe7ec);
+  const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 400);
+  addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+
+  /* ---- luz de dia, forte e uniforme ---- */
+  scene.add(new THREE.HemisphereLight(0xeaf4ff, 0xcfc8b8, 0.95));
+  const sol = new THREE.DirectionalLight(0xfff1da, 1.1);
+  sol.position.set(18, 26, 12);
+  sol.castShadow = true;
+  sol.shadow.mapSize.set(2048, 2048);
+  sol.shadow.camera.left = -22; sol.shadow.camera.right = 22;
+  sol.shadow.camera.top = 22; sol.shadow.camera.bottom = -22;
+  sol.shadow.camera.far = 80;
+  sol.shadow.bias = -0.0004;
+  scene.add(sol);
+  const enche = new THREE.DirectionalLight(0xdfeaff, 0.3);
+  enche.position.set(-12, 10, -14);
+  scene.add(enche);
+
+  /* ---- chão neutro claro com grelha de metros (textura desenhada) ---- */
+  let TAM = 70; // metros de chão (o manifesto pode pedir outro tamanho)
+  function chao() {
+    const cv = document.createElement('canvas'); cv.width = cv.height = 2048;
+    const g = cv.getContext('2d');
+    const pxm = 2048 / TAM, meio = 2048 / 2;
+    g.fillStyle = '#ccd0c9'; g.fillRect(0, 0, 2048, 2048);
+    for (let i = -Math.floor(TAM / 2); i <= TAM / 2; i++) {
+      const p = meio + i * pxm, maior = (i % 5 === 0);
+      g.strokeStyle = maior ? '#57626a' : 'rgba(80,90,95,0.45)';
+      g.lineWidth = maior ? 5 : 2;
+      g.beginPath(); g.moveTo(p, 0); g.lineTo(p, 2048); g.stroke();
+      g.beginPath(); g.moveTo(0, p); g.lineTo(2048, p); g.stroke();
+    }
+    g.fillStyle = '#414b51'; g.font = 'bold 40px sans-serif';
+    for (let i = -6; i <= 6; i++) {
+      if (!i) continue;
+      g.fillText((Math.abs(i * 5)) + 'm', meio + i * 5 * pxm + 8, meio - 12);
+      g.fillText((Math.abs(i * 5)) + 'm', meio + 8, meio + i * 5 * pxm - 12);
+    }
+    g.strokeStyle = '#b0402f'; g.lineWidth = 6;
+    g.beginPath(); g.moveTo(meio - pxm, meio); g.lineTo(meio + pxm, meio); g.stroke();
+    g.beginPath(); g.moveTo(meio, meio - pxm); g.lineTo(meio, meio + pxm); g.stroke();
+    const tex = new THREE.CanvasTexture(cv);
+    tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    tex.encoding = THREE.sRGBEncoding;
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(TAM, TAM),
+      new THREE.MeshStandardMaterial({ map: tex, roughness: 0.96, metalness: 0 }));
+    m.rotation.x = -Math.PI / 2;
+    m.receiveShadow = true;
+    scene.add(m);
+  }
+
+  /* ---- sombra de contacto: disco suave e denso sob cada peça ----
+   * (o dispositivo da própria cena do jogo; ancora a peça ao chão
+   * mesmo onde o mapa de sombras não tem resolução para ela) */
+  const texContacto = (function () {
+    const cv = document.createElement('canvas'); cv.width = cv.height = 256;
+    const g = cv.getContext('2d');
+    const grad = g.createRadialGradient(128, 128, 10, 128, 128, 128);
+    grad.addColorStop(0, 'rgba(18,20,18,0.62)');
+    grad.addColorStop(0.55, 'rgba(18,20,18,0.34)');
+    grad.addColorStop(1, 'rgba(18,20,18,0)');
+    g.fillStyle = grad; g.fillRect(0, 0, 256, 256);
+    return new THREE.CanvasTexture(cv);
+  })();
+  function sombraContacto(x, z, largura, y) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(largura, largura),
+      new THREE.MeshBasicMaterial({ map: texContacto, transparent: true, depthWrite: false }));
+    m.rotation.x = -Math.PI / 2;
+    m.position.set(x, y || 0.02, z);
+    m.renderOrder = 1;
+    scene.add(m);
+  }
+
+  /* ---- régua de metros: cada faixa = 1 m (vermelho/branco) ---- */
+  function regua(x, z, altura) {
+    const grp = new THREE.Group();
+    for (let i = 0; i < altura; i++) {
+      const b = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.98, 0.36),
+        new THREE.MeshStandardMaterial({ color: i % 2 ? 0xf0efe8 : 0xd8402f, roughness: 0.7 }));
+      b.position.y = i + 0.5; b.castShadow = true;
+      grp.add(b);
+    }
+    const topo = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 12),
+      new THREE.MeshStandardMaterial({ color: 0xd8402f, roughness: 0.6 }));
+    topo.position.y = altura + 0.25; topo.castShadow = true;
+    grp.add(topo);
+    grp.position.set(x, 0, z);
+    scene.add(grp);
+    sombraContacto(x, z, 1.3);
+  }
+
+  /* ================= CÂMARA LIVRE ANDÁVEL ================= */
+  const ctrl = {
+    pos: new THREE.Vector3(9.1, 2.4, 12.5), yaw: 0, pitch: 0,
+    joyX: 0, joyY: 0, sobe: 0, teclas: {}
+  };
+  function aplicarCamara() {
+    camera.position.copy(ctrl.pos);
+    const cp = Math.cos(ctrl.pitch);
+    const dir = new THREE.Vector3(-Math.sin(ctrl.yaw) * cp, Math.sin(ctrl.pitch), -Math.cos(ctrl.yaw) * cp);
+    camera.lookAt(ctrl.pos.clone().add(dir));
+  }
+  function olharPara(pos, alvo) {
+    ctrl.pos.set(pos[0], pos[1], pos[2]);
+    const d = new THREE.Vector3(alvo[0] - pos[0], alvo[1] - pos[1], alvo[2] - pos[2]).normalize();
+    ctrl.pitch = Math.asin(THREE.MathUtils.clamp(d.y, -1, 1));
+    ctrl.yaw = Math.atan2(-d.x, -d.z);
+    aplicarCamara();
+  }
+  // arrastar (dedo ou rato) em qualquer ponto do mundo = olhar à volta
+  (function olhar() {
+    let activo = false, lx = 0, ly = 0;
+    const el = renderer.domElement;
+    el.addEventListener('pointerdown', e => { activo = true; lx = e.clientX; ly = e.clientY; el.setPointerCapture(e.pointerId); acordarDica(); });
+    el.addEventListener('pointermove', e => {
+      if (!activo) return;
+      ctrl.yaw -= (e.clientX - lx) * 0.0045;
+      ctrl.pitch = THREE.MathUtils.clamp(ctrl.pitch - (e.clientY - ly) * 0.0045, -1.45, 1.45);
+      lx = e.clientX; ly = e.clientY;
+    });
+    ['pointerup', 'pointercancel'].forEach(ev => el.addEventListener(ev, () => { activo = false; }));
+  })();
+  // manípulo (joystick) grande, canto inferior esquerdo
+  (function manípulo() {
+    const joy = document.getElementById('joy'), nub = document.getElementById('joyNub');
+    let id = null;
+    const centro = () => { const r = joy.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2, r.width / 2]; };
+    const mexer = e => {
+      const [cx, cy, rad] = centro();
+      let dx = (e.clientX - cx) / rad, dy = (e.clientY - cy) / rad;
+      const m = Math.hypot(dx, dy); if (m > 1) { dx /= m; dy /= m; }
+      ctrl.joyX = dx; ctrl.joyY = dy;
+      nub.style.transform = `translate(calc(-50% + ${dx * 34}px), calc(-50% + ${dy * 34}px))`;
+    };
+    joy.addEventListener('pointerdown', e => { id = e.pointerId; joy.setPointerCapture(id); mexer(e); acordarDica(); });
+    joy.addEventListener('pointermove', e => { if (e.pointerId === id) mexer(e); });
+    const largar = e => { if (e.pointerId === id) { id = null; ctrl.joyX = ctrl.joyY = 0; nub.style.transform = 'translate(-50%,-50%)'; } };
+    ['pointerup', 'pointercancel'].forEach(ev => joy.addEventListener(ev, largar));
+  })();
+  // botões grandes de altura + casa (vista inicial)
+  (function botoes() {
+    const liga = (idBtn, val) => {
+      const b = document.getElementById(idBtn);
+      b.addEventListener('pointerdown', e => { e.preventDefault(); ctrl.sobe = val; acordarDica(); });
+      ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => b.addEventListener(ev, () => { if (ctrl.sobe === val) ctrl.sobe = 0; }));
+    };
+    liga('btnUp', 1); liga('btnDown', -1);
+    document.getElementById('btnHome').addEventListener('click', () => window.__salaVista('tres-quartos'));
+  })();
+  addEventListener('keydown', e => { ctrl.teclas[e.key.toLowerCase()] = true; });
+  addEventListener('keyup', e => { ctrl.teclas[e.key.toLowerCase()] = false; });
+  // a dica esbate-se passado um bocado, volta ao toque
+  let dicaTimer = null;
+  function acordarDica() {
+    const d = document.getElementById('dica');
+    d.style.opacity = '1';
+    clearTimeout(dicaTimer);
+    dicaTimer = setTimeout(() => { d.style.opacity = '0.35'; }, 6000);
+  }
+  acordarDica();
+
+  /* ---- vistas padrão (relativas ao alvo do manifesto) ---- */
+  let alvo = new THREE.Vector3(0, 0, 0);
+  const VISTAS = {
+    'frente':       () => [[alvo.x, 1.7, alvo.z + 18], [alvo.x, 6.2, alvo.z]],
+    'lado':         () => [[alvo.x + 18, 1.7, alvo.z], [alvo.x, 6.2, alvo.z]],
+    'costas':       () => [[alvo.x, 1.7, alvo.z - 18], [alvo.x, 6.2, alvo.z]],
+    'tres-quartos': () => [[alvo.x + 11.5, 2.4, alvo.z + 12.5], [alvo.x, 5.2, alvo.z]],
+    'perto-base':   () => [[alvo.x + 3.6, 1.5, alvo.z + 4.8], [alvo.x + 0.4, 1.2, alvo.z + 0.4]],
+    'perto-copa':   () => [[alvo.x + 5.2, 11.0, alvo.z + 6.2], [alvo.x, 11.6, alvo.z]],
+    'personagens':  () => [[alvo.x + 6.6, 1.5, alvo.z + 6.6], [alvo.x + 3.1, 0.7, alvo.z + 1.9]]
+  };
+  window.__salaVista = function (nome) {
+    const v = (VISTAS[nome] || VISTAS['tres-quartos'])();
+    olharPara(v[0], v[1]);
+    return nome;
+  };
+  window.__salaOlhar = olharPara; // câmara livre por coordenadas (capturas)
+
+  let ultimo = performance.now();
+  function ciclo(agora) {
+    requestAnimationFrame(ciclo);
+    const dt = Math.min(0.05, (agora - ultimo) / 1000); ultimo = agora;
+    // movimento: manípulo + WASD/setas, relativo ao olhar, no plano do chão
+    const t = ctrl.teclas;
+    let mx = ctrl.joyX + ((t['d'] || t['arrowright']) ? 1 : 0) - ((t['a'] || t['arrowleft']) ? 1 : 0);
+    let mz = ctrl.joyY + ((t['s'] || t['arrowdown']) ? 1 : 0) - ((t['w'] || t['arrowup']) ? 1 : 0);
+    const mm = Math.hypot(mx, mz); if (mm > 1) { mx /= mm; mz /= mm; }
+    if (mx || mz) {
+      const s = Math.sin(ctrl.yaw), c = Math.cos(ctrl.yaw);
+      const frente = new THREE.Vector3(-s, 0, -c), direita = new THREE.Vector3(c, 0, -s);
+      const vel = 4.2 * (t['shift'] ? 2.2 : 1);
+      ctrl.pos.addScaledVector(frente, -mz * vel * dt);
+      ctrl.pos.addScaledVector(direita, mx * vel * dt);
+      const lim = TAM / 2 - 2;
+      ctrl.pos.x = THREE.MathUtils.clamp(ctrl.pos.x, -lim, lim);
+      ctrl.pos.z = THREE.MathUtils.clamp(ctrl.pos.z, -lim, lim);
+    }
+    const sobe = ctrl.sobe + ((t['e'] || t['pageup']) ? 1 : 0) - ((t['q'] || t['pagedown']) ? 1 : 0);
+    if (sobe) ctrl.pos.y = THREE.MathUtils.clamp(ctrl.pos.y + sobe * 3.0 * dt, 0.4, 17);
+    aplicarCamara();
+    renderer.render(scene, camera);
+  }
+  requestAnimationFrame(ciclo);
+
+  /* ---- etiqueta de nome: placa simples em frente da peça ---- */
+  function etiqueta(texto, x, z) {
+    const partes = texto.split(' — ');
+    const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 256;
+    const g = cv.getContext('2d');
+    g.fillStyle = '#2e3a40'; g.fillRect(0, 0, 1024, 256);
+    g.strokeStyle = '#e8e4da'; g.lineWidth = 6; g.strokeRect(10, 10, 1004, 236);
+    g.fillStyle = '#ffffff'; g.textAlign = 'center';
+    if (partes.length > 1) {
+      g.font = 'bold 62px sans-serif';
+      g.fillText(partes[0], 512, 108, 960);
+      g.font = '44px sans-serif'; g.fillStyle = '#ffd9a0';
+      g.fillText(partes.slice(1).join(' — '), 512, 190, 960);
+    } else {
+      g.font = 'bold 66px sans-serif';
+      g.fillText(partes[0], 512, 152, 960);
+    }
+    const tex = new THREE.CanvasTexture(cv);
+    tex.encoding = THREE.sRGBEncoding;
+    const grp = new THREE.Group();
+    const placa = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 0.48),
+      new THREE.MeshStandardMaterial({ map: tex, roughness: 0.85 }));
+    placa.position.y = 0.66; placa.rotation.x = -0.32; placa.castShadow = true;
+    const pe = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.5, 0.09),
+      new THREE.MeshStandardMaterial({ color: 0x4a545a, roughness: 0.8 }));
+    pe.position.y = 0.25;
+    grp.add(placa); grp.add(pe);
+    grp.position.set(x, 0, z);
+    scene.add(grp);
+  }
+
+  /* ---- carregar o manifesto ---- */
+  fetch(MANIFESTO).then(r => r.json()).then(man => {
+    if (man.chao) TAM = man.chao;
+    chao();
+    sol.shadow.camera.left = -TAM / 2; sol.shadow.camera.right = TAM / 2;
+    sol.shadow.camera.top = TAM / 2; sol.shadow.camera.bottom = -TAM / 2;
+    sol.shadow.camera.updateProjectionMatrix();
+    if (man.alvoVista) alvo.set(man.alvoVista[0], 0, man.alvoVista[1]);
+    if (man.regua) regua(man.regua.pos[0], man.regua.pos[1], man.regua.altura || 15);
+    const loader = new THREE.GLTFLoader();
+    let pendentes = man.itens.length;
+    man.itens.forEach(item => {
+      loader.load(item.ficheiro, gltf => {
+        const raiz = gltf.scene;
+        const reg = { nome: item.nome, ficheiro: item.ficheiro };
+        let caixaVinc = new THREE.Box3().setFromObject(raiz);
+        reg.alturaVinculo_m = +(caixaVinc.max.y - caixaVinc.min.y).toFixed(4);
+        if (gltf.animations && gltf.animations.length) {
+          const clip = gltf.animations.find(a => /idle/i.test(a.name)) || gltf.animations[0];
+          const mixer = new THREE.AnimationMixer(raiz);
+          mixer.clipAction(clip).play();
+          mixer.setTime(0.35);
+          raiz.updateMatrixWorld(true);
+          reg.animacao = clip.name;
+        }
+        const caixa = new THREE.Box3().setFromObject(raiz);
+        const tam = caixa.getSize(new THREE.Vector3());
+        const centro = caixa.getCenter(new THREE.Vector3());
+        reg.alturaNativa_m = +tam.y.toFixed(4);
+        let factor = 1;
+        if (item.alturaAlvo) factor = item.alturaAlvo / tam.y;
+        const grupo = new THREE.Group();
+        raiz.position.x -= centro.x; raiz.position.z -= centro.z;
+        raiz.position.y -= caixa.min.y;
+        grupo.add(raiz);
+        grupo.scale.setScalar(factor);
+        if (item.rotY) grupo.rotation.y = item.rotY;
+        const ped = item.pedestal || 0;
+        grupo.position.set(item.pos[0], ped, item.pos[1]);
+        grupo.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = false; } });
+        scene.add(grupo);
+        if (ped > 0) {
+          const base = new THREE.Mesh(new THREE.BoxGeometry(1.15, ped, 1.15),
+            new THREE.MeshStandardMaterial({ color: 0xb7bab1, roughness: 0.9 }));
+          base.position.set(item.pos[0], ped / 2, item.pos[1]);
+          base.castShadow = true; base.receiveShadow = true;
+          scene.add(base);
+        }
+        grupo.updateMatrixWorld(true);
+        const final = new THREE.Box3().setFromObject(grupo);
+        const tamF = final.getSize(new THREE.Vector3());
+        reg.factor = +factor.toFixed(5);
+        reg.alturaFinal_m = +tamF.y.toFixed(4);
+        reg.larguraFinal_m = +tamF.x.toFixed(3);
+        reg.fundoFinal_m = +tamF.z.toFixed(3);
+        reg.yminFinal_m = +(final.min.y - ped).toFixed(4);
+        sombraContacto(item.pos[0], item.pos[1], Math.max(tamF.x, tamF.z) * 1.18 + 0.25);
+        if (item.etiqueta) etiqueta(item.etiqueta, item.pos[0], item.pos[1] + tamF.z / 2 + 0.95);
+        (stats.grupos = stats.grupos || []).push(grupo);
+        stats.itens.push(reg);
+        if (--pendentes === 0) {
+          /* enquadrar o mapa de sombras ao conteúdo (não ao chão
+           * inteiro): 4096 texéis sobre a união das peças — os ramos
+           * e as peças pequenas ganham sombra de verdade */
+          try {
+            const uniao = new THREE.Box3();
+            (stats.grupos || []).forEach(gr => uniao.union(new THREE.Box3().setFromObject(gr)));
+            const c = uniao.getCenter(new THREE.Vector3());
+            const s = uniao.getSize(new THREE.Vector3());
+            const raio = Math.max(s.x, s.z) / 2 + 4;
+            sol.position.set(c.x + 26, 38, c.z + 17);
+            sol.target.position.set(c.x, 0, c.z);
+            scene.add(sol.target);
+            sol.shadow.camera.left = -raio; sol.shadow.camera.right = raio;
+            sol.shadow.camera.top = raio; sol.shadow.camera.bottom = -raio;
+            sol.shadow.camera.updateProjectionMatrix();
+            sol.shadow.mapSize.set(4096, 4096);
+            if (sol.shadow.map) { sol.shadow.map.dispose(); sol.shadow.map = null; }
+            stats.sombra = { centro: [+c.x.toFixed(1), +c.z.toFixed(1)], raio_m: +raio.toFixed(1), mapa: 4096 };
+          } catch (e) { stats.erros.push('sombra: ' + e.message); }
+          stats.pronto = true;
+        }
+      }, undefined, err => {
+        stats.erros.push(item.ficheiro + ': ' + (err && err.message || 'erro de carga'));
+        if (--pendentes === 0) stats.pronto = true;
+      });
+    });
+    window.__salaVista(qs.get('vista') || 'tres-quartos');
+  }).catch(e => { stats.erros.push('manifesto: ' + e.message); stats.pronto = true; });
+})();
+</script>
+</body>
+</html>
