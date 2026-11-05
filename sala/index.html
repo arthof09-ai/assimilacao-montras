@@ -36,9 +36,7 @@
   #carga .barra > div { height: 100%; width: 0%; background: #ffd9a0; transition: width 0.3s; }
   /* ---- controlo da luz: ciclo de 24 horas EDITÁVEL (ordem do
      Mestre, 04/11/2026 23:23 — dia, tarde, noite e tudo pelo meio) ---- */
-  #luz { position: fixed; left: 14px; top: 14px; z-index: 10;
-    background: rgba(24,32,38,0.72); color: #fff; border-radius: 14px;
-    padding: 9px 12px 11px; font-size: 14px; }
+  #luz { font-size: 14px; margin-bottom: 13px; }
   #luz .tit2 { font-size: 12.5px; opacity: 0.85; margin-bottom: 6px; }
   #luz .linha { display: flex; align-items: center; gap: 7px; }
   #luz button { background: rgba(255,255,255,0.16); color: #fff; border: 1px solid rgba(255,255,255,0.45);
@@ -48,9 +46,18 @@
   #luzHora { font-weight: bold; min-width: 44px; text-align: right; }
   /* ---- multiplicador de velocidade (pedido do Mestre,
      05/11/2026 03:11) — botões 1× 2× 4× 8× sob o painel da luz ---- */
-  #vel { position: fixed; left: 14px; top: 124px; z-index: 10;
-    background: rgba(24,32,38,0.72); color: #fff; border-radius: 14px;
-    padding: 9px 12px 11px; font-size: 14px; }
+  #vel { font-size: 14px; margin-bottom: 9px; }
+  /* ---- ENGRENAGEM (regra do Mestre, 05/11/2026 03:43): TODAS as
+     configurações vivem dentro deste pop-up, no cantinho de cima;
+     a tela fica limpa, sem painéis jogados uns sobre os outros ---- */
+  #engrenagem { position: fixed; left: 14px; top: 14px; z-index: 12; width: 46px; height: 46px;
+    border-radius: 50%; background: rgba(24,32,38,0.78); color: #fff; font-size: 23px;
+    border: 1px solid rgba(255,255,255,0.45); cursor: pointer; text-align: center; line-height: 44px; }
+  #config { position: fixed; left: 14px; top: 70px; z-index: 11; width: 294px;
+    background: rgba(24,32,38,0.9); color: #fff; border-radius: 14px; padding: 13px 14px 5px;
+    font-size: 14px; display: none; }
+  #config.aberto { display: block; }
+  #config .tit { font-size: 15px; font-weight: bold; margin-bottom: 10px; }
   #vel .tit2 { font-size: 12.5px; opacity: 0.85; margin-bottom: 6px; }
   #vel .linha { display: flex; align-items: center; gap: 7px; }
   #vel button { background: rgba(255,255,255,0.16); color: #fff; border: 1px solid rgba(255,255,255,0.45);
@@ -66,11 +73,14 @@
 <div id="btnHome">⌂</div>
 <div id="dica">arrasta no ecrã para olhar · manípulo para andar · ▲▼ para subir/descer</div>
 <div id="carga"><div class="tit">A carregar a sala…</div><div class="num">a preparar</div><div class="barra"><div id="cargaBarra"></div></div></div>
+<div id="engrenagem" title="Configurações">⚙</div>
+<div id="config"><div class="tit">⚙ Configurações</div>
 <div id="luz"><div class="tit2">☀ luz do dia — escolhe a hora</div>
-<div class="linha"><button data-hora="11.5">Dia</button><button data-hora="17.5">Tarde</button><button data-hora="22.5">Noite</button>
-<input id="luzSlider" type="range" min="0" max="24" step="0.1" value="11.5"><span id="luzHora">11:30</span></div></div>
+<div class="linha"><button data-hora="11.5">Dia</button><button data-hora="17.5">Tarde</button><button data-hora="22.5">Noite</button></div>
+<div class="linha" style="margin-top:7px"><input id="luzSlider" type="range" min="0" max="24" step="0.1" value="11.5"><span id="luzHora">11:30</span></div></div>
 <div id="vel"><div class="tit2">🏃 velocidade — multiplicar</div>
 <div class="linha"><button data-vel="1" class="activo">1×</button><button data-vel="2">2×</button><button data-vel="4">4×</button><button data-vel="8">8×</button></div></div>
+</div>
 <script src="vendor/three.min.js"></script>
 <script src="vendor/GLTFLoader.js"></script>
 <script>
@@ -94,7 +104,7 @@
   const MANIFESTO = qs.get('manifesto') || 'cenas/galeria-leve.json';
   if (qs.get('limpo')) { // modo de captura: sem controlos por cima da vista
     const st = document.createElement('style');
-    st.textContent = '#joy,.hbtn,#btnHome,#dica,#carga,#luz,#vel{display:none!important}';
+    st.textContent = '#joy,.hbtn,#btnHome,#dica,#carga,#luz,#vel,#engrenagem,#config{display:none!important}';
     document.head.appendChild(st);
   }
 
@@ -346,6 +356,9 @@
   };
   document.querySelectorAll('#vel button').forEach(b =>
     b.addEventListener('click', () => window.__salaVel(parseFloat(b.dataset.vel))));
+  /* ---- a engrenagem abre/fecha o pop-up de configurações ---- */
+  document.getElementById('engrenagem').addEventListener('click', () =>
+    document.getElementById('config').classList.toggle('aberto'));
   function aplicarCamara() {
     camera.position.copy(ctrl.pos);
     const cp = Math.cos(ctrl.pitch);
