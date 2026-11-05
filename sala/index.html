@@ -280,6 +280,36 @@
     scene.add(m);
   }
 
+  /* ---- VAGALUMES (detalhe vivo — pedido do Mestre, 05/11/2026
+     03:28: «a riqueza tá no detalhe»): pontinhos de luz que
+     acordam à noite e passeiam devagar pela sala. Movimento por
+     código, sem ficheiro nem PC: luz, cor e ritmo certos. */
+  const vagalumes = (function () {
+    const N = 130;
+    const cv = document.createElement('canvas'); cv.width = cv.height = 64;
+    const g = cv.getContext('2d');
+    const grad = g.createRadialGradient(32, 32, 2, 32, 32, 32);
+    grad.addColorStop(0, 'rgba(255,244,180,1)');
+    grad.addColorStop(0.35, 'rgba(226,255,158,0.55)');
+    grad.addColorStop(1, 'rgba(226,255,158,0)');
+    g.fillStyle = grad; g.fillRect(0, 0, 64, 64);
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(N * 3), base = [], fase = [];
+    for (let i = 0; i < N; i++) {
+      const x = (Math.random() - 0.5) * 56, z = (Math.random() - 0.5) * 56;
+      const y = 0.5 + Math.random() * 3.4;
+      base.push([x, y, z]); fase.push(Math.random() * Math.PI * 2);
+      pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z;
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({ size: 0.55, map: new THREE.CanvasTexture(cv),
+      transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
+    const pts = new THREE.Points(geo, mat);
+    scene.add(pts);
+    stats.vagalumes = N;
+    return { pts, mat, base, fase, N };
+  })();
+
   /* ---- régua de metros: cada faixa = 1 m (vermelho/branco) ---- */
   function regua(x, z, altura) {
     const grp = new THREE.Group();
@@ -421,6 +451,22 @@
     const sobe = ctrl.sobe + ((t['e'] || t['pageup']) ? 1 : 0) - ((t['q'] || t['pagedown']) ? 1 : 0);
     if (sobe) ctrl.pos.y = THREE.MathUtils.clamp(ctrl.pos.y + sobe * 3.0 * velMul * dt, 0.4, 17);
     aplicarCamara();
+    // vagalumes: acordam quando o sol cai, apagam-se de dia
+    {
+      const alvoOp = sol.intensity < 0.45 ? 0.9 : 0;
+      vagalumes.mat.opacity += (alvoOp - vagalumes.mat.opacity) * Math.min(1, dt * 1.5);
+      if (vagalumes.mat.opacity > 0.02) {
+        const p = vagalumes.pts.geometry.attributes.position, tt = agora / 1000;
+        for (let i = 0; i < vagalumes.N; i++) {
+          const b = vagalumes.base[i], f = vagalumes.fase[i];
+          p.array[i * 3] = b[0] + Math.sin(tt * 0.31 + f) * 1.6 + Math.sin(tt * 0.83 + f * 2.7) * 0.35;
+          p.array[i * 3 + 1] = b[1] + Math.sin(tt * 0.57 + f * 1.9) * 0.45;
+          p.array[i * 3 + 2] = b[2] + Math.cos(tt * 0.26 + f) * 1.6;
+        }
+        p.needsUpdate = true;
+        vagalumes.mat.size = 0.5 + 0.13 * Math.sin(tt * 2.1);
+      }
+    }
     renderer.render(scene, camera);
   }
   requestAnimationFrame(ciclo);
