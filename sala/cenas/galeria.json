@@ -538,13 +538,13 @@
   {
    "ficheiro": "modelos/galeria/besta-fiel.glb",
    "nome": "Besta Cristalina — versão FIEL (a que entra no jogo)",
-   "etiqueta": "Besta Cristalina — versão FIEL (a que entra no jogo)",
+   "etiqueta": "Besta Cristalina — versão FIEL (a que entra no jogo) · altura real: 2,40 m",
    "pos": [
     -14.38,
     -4.45
    ],
    "rotY": -0.6,
-   "alturaAlvo": null,
+   "alturaAlvo": 2.4,
    "pedestal": 0,
    "familia": "criaturas",
    "medidas_m": [
@@ -556,13 +556,13 @@
   {
    "ficheiro": "modelos/galeria/besta-cinza.glb",
    "nome": "Besta Cristalina — versão cinza azulada (alternativa aprovada)",
-   "etiqueta": "Besta Cristalina — versão cinza azulada (alternativa aprovada)",
+   "etiqueta": "Besta Cristalina — versão cinza azulada (alternativa aprovada) · altura real: 2,40 m",
    "pos": [
     -9.0,
     -4.45
    ],
    "rotY": -0.6,
-   "alturaAlvo": null,
+   "alturaAlvo": 2.4,
    "pedestal": 0,
    "familia": "criaturas",
    "medidas_m": [
@@ -574,13 +574,13 @@
   {
    "ficheiro": "modelos/galeria/besta-lendaria.glb",
    "nome": "Besta — forma lendária, sem pintura (MT-1 M1)",
-   "etiqueta": "Besta — forma lendária, sem pintura (MT-1 M1)",
+   "etiqueta": "Besta — forma lendária, sem pintura (MT-1 M1) · altura real: 2,40 m",
    "pos": [
     -3.62,
     -4.45
    ],
    "rotY": -0.6,
-   "alturaAlvo": null,
+   "alturaAlvo": 2.4,
    "pedestal": 0,
    "familia": "criaturas",
    "medidas_m": [
@@ -592,13 +592,13 @@
   {
    "ficheiro": "modelos/galeria/besta-leve.glb",
    "nome": "Besta — forma leve curada, sem pintura (MT-1 M2)",
-   "etiqueta": "Besta — forma leve curada, sem pintura (MT-1 M2)",
+   "etiqueta": "Besta — forma leve curada, sem pintura (MT-1 M2) · altura real: 2,40 m",
    "pos": [
     1.76,
     -4.45
    ],
    "rotY": -0.6,
-   "alturaAlvo": null,
+   "alturaAlvo": 2.4,
    "pedestal": 0,
    "familia": "criaturas",
    "medidas_m": [
@@ -610,13 +610,13 @@
   {
    "ficheiro": "modelos/galeria/orc-lendario.glb",
    "nome": "Orc — forma lendária (MT-1 P1 · peça de teste)",
-   "etiqueta": "Orc — forma lendária (MT-1 P1 · peça de teste)",
+   "etiqueta": "Orc — forma lendária (MT-1 P1 · peça de teste) · altura real: 2,40 m",
    "pos": [
     6.48,
     -4.45
    ],
    "rotY": 0,
-   "alturaAlvo": null,
+   "alturaAlvo": 2.4,
    "pedestal": 0,
    "familia": "criaturas",
    "medidas_m": [
@@ -628,13 +628,13 @@
   {
    "ficheiro": "modelos/galeria/orc-leve.glb",
    "nome": "Orc — forma leve curada (MT-1 P2 · peça de teste)",
-   "etiqueta": "Orc — forma leve curada (MT-1 P2 · peça de teste)",
+   "etiqueta": "Orc — forma leve curada (MT-1 P2 · peça de teste) · altura real: 2,40 m",
    "pos": [
     10.54,
     -4.45
    ],
    "rotY": 0,
-   "alturaAlvo": null,
+   "alturaAlvo": 2.4,
    "pedestal": 0,
    "familia": "criaturas",
    "medidas_m": [
@@ -646,13 +646,13 @@
   {
    "ficheiro": "modelos/galeria/capanga-s7.glb",
    "nome": "Capanga — geração s7 (forma reprovada na régua)",
-   "etiqueta": "Capanga — geração s7 (forma reprovada na régua)",
+   "etiqueta": "Capanga — geração s7 (forma reprovada na régua) · altura real: 1,80 m",
    "pos": [
     14.82,
     -4.45
    ],
    "rotY": 0,
-   "alturaAlvo": null,
+   "alturaAlvo": 1.8,
    "pedestal": 0,
    "familia": "criaturas",
    "medidas_m": [
@@ -712,14 +712,14 @@
   },
   {
    "ficheiro": "modelos/besta-pintada-fiel.glb",
-   "nome": "TESTE — Besta fiel ao lado",
-   "etiqueta": "Besta Cristalina fiel — ao lado da gigante",
+   "nome": "TESTE — Besta Cristalina fiel — tamanho de cânone",
+   "etiqueta": "Besta Cristalina fiel — tamanho de cânone: 2,40 m de altura × 3,45 m de comprimento",
    "pos": [
-    -25.5,
-    22.114963031870595
+    -24.8,
+    22.9
    ],
    "rotY": -0.6,
-   "alturaAlvo": null,
+   "alturaAlvo": 2.4,
    "pedestal": 0,
    "familia": "teste"
   },

@@ -1,0 +1,3 @@
+{"nome":"itens-fix","chao":30,"alvoVista":[0,0],"itens":[
+{"ficheiro":"modelos/galeria/espada-longa.glb","nome":"Espada","etiqueta":"Espada — teste","pos":[-2,0],"rotY":0,"alturaAlvo":null,"pedestal":0.9},
+{"ficheiro":"modelos/galeria/bau.glb","nome":"Bau","etiqueta":"Bau — teste","pos":[2,0],"rotY":0,"alturaAlvo":null,"pedestal":0.9}]}
