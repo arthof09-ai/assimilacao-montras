@@ -405,21 +405,253 @@
                cópia da página de teste — o vivo não a tem. O anel
                segue o terreno e tremula devagar (opacidade na animate). */
             const aneisTeste = [];
-            function addRing(dados) {
-                if (!dados || !Number.isFinite(dados.x) || !Number.isFinite(dados.y)
-                    || !Number.isFinite(dados.raioM) || dados.raioM <= 0 || dados.raioM > 40)
-                    throw new TypeError('Anel inválido.');
-                valid({ x: dados.x, z: dados.y, altitude: 0 });
-                const cx = wx(dados.x), cz = wz(dados.y), N = 72;
-                /* Faixa (não linha de 1 px): uma banda dourada de
-                   ±10 cm que segue o terreno — lê-se de longe, com
-                   o tremular a pulsar-lhe a opacidade na animate. */
-                const pos = [], idx = [];
+            /* --- VOLTA 2: a arte original do anel, extraída --- */
+            const ANEL_LARGURA_PINTURA_M = 2.005;   // largura medida da faixa pintada
+            const ANEL_MARGEM_FRAC = .25;           // pluma de cada lado (fracção da largura)
+            const ANEL_NUCLEO_V0 = ANEL_MARGEM_FRAC / (1 + 2 * ANEL_MARGEM_FRAC);   // = 1/6
+            let anelVariante = 'A';
+            try {
+                if (new URLSearchParams(location.search).get('anel') === 'B') anelVariante = 'B';
+            } catch (e) { /* sem URL legível: fica A */ }
+            let anelArteFalhou = false, anelInteriorFalhou = false;
+            window.__anelOriginalPronto = false;
+            const texAnelOriginal = new T.TextureLoader().load('anel-original.webp', t => {
+                t.encoding = T.sRGBEncoding; t.anisotropy = 4; t.wrapS = T.RepeatWrapping;
+                aplicarJanelaAnel();
+                window.__anelOriginalPronto = true;
+            }, undefined, () => {
+                anelArteFalhou = true;
+                for (const r of aneisTeste) refazerAnel(r);
+            });
+            const texAnelInterior = new T.TextureLoader().load('anel-interior.jpg', t => {
+                t.encoding = T.sRGBEncoding; t.anisotropy = 4;
+            }, undefined, () => {
+                anelInteriorFalhou = true;
+                for (const r of aneisTeste) refazerAnel(r);
+            });
+            /* A faixa desenrolada tem, em v: [0, 1/6) pluma interior,
+               [1/6, 5/6] o motivo pintado, (5/6, 1] pluma exterior.
+               Na variante A só o motivo entra na banda de ±0,13 m
+               (janela de textura); na B entra a faixa inteira. */
+            function aplicarJanelaAnel() {
+                if (anelVariante === 'B') { texAnelOriginal.repeat.set(1, 1); texAnelOriginal.offset.set(0, 0); }
+                else { texAnelOriginal.repeat.set(1, 1 - 2 * ANEL_NUCLEO_V0); texAnelOriginal.offset.set(0, ANEL_NUCLEO_V0); }
+            }
+            aplicarJanelaAnel();
+            function meiaLarguraAnel() {
+                return anelVariante === 'B' ? ANEL_LARGURA_PINTURA_M * (1 + 2 * ANEL_MARGEM_FRAC) / 2 : .13;
+            }
+            function setVarianteAnel(v) {
+                v = String(v).toUpperCase();
+                if ((v !== 'A' && v !== 'B') || v === anelVariante) return anelVariante;
+                anelVariante = v;
+                aplicarJanelaAnel();
+                for (const r of aneisTeste) refazerAnel(r);
+                return anelVariante;
+            }
+            window.__ANEL_VARIANTE = { get: () => anelVariante, set: setVarianteAnel };
+            /* TESTE-AUREN — qualidade visual dos círculos.
+               VOLTA 1 (09/11/2026, palavra do Mestre: «a mesma
+               qualidade visual do ritual [que] já existe»): texturas
+               geradas na página (canvas), à imagem do anel pintado —
+               faixa escura com runas, duas linhas de ouro, desgaste.
+               O olho dele: «ficou mil vezes melhor, mas o ritual
+               original tá mil vezes mais bonito que isso».
+               VOLTA 2 (a fasquia é a pintura ORIGINAL): a textura dos
+               círculos é a PRÓPRIA arte do anel da arena, extraída da
+               textura do chão do jogo (REF_31) por desenrolamento
+               angular (scripts em qualidade-circulos/): a faixa vive
+               em anel-original.webp (8192×384, com pluma de alfa nas
+               margens) e o interior pintado em anel-interior.jpg.
+               Nada é redesenhado — as runas, o ouro gasto e os cortes
+               são os da pintura. As texturas da volta 1 ficam como
+               recurso (fallback) se a arte falhar o carregamento.
+               VARIANTES (o olho dele decide): A = a arte espremida na
+               banda actual de ±0,13 m; B = a banda com a largura
+               visual da pintura original (2,005 m de motivo, 3,01 m
+               com as plumas), raio central sempre exacto. Escolha:
+               ?anel=B no endereço, ou __ANEL_VARIANTE.set('A'|'B')
+               na consola, ou view.setVarianteAnel(...). */
+            function rngAnel(semente) {
+                let a = semente >>> 0;
+                return function () {
+                    a |= 0; a = a + 0x6D2B79F5 | 0;
+                    let t = Math.imul(a ^ a >>> 15, 1 | a);
+                    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+                    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+                };
+            }
+            /* As formas das runas são os traços angulares da mesma
+               família dos que o anel pintado já tem (losango, triângulo,
+               cruz, estrela, seta, duplo ângulo, cruz de barras, zigue-
+               zague, gancho) — nenhum símbolo novo. Desenham centradas
+               na origem, com altura s. */
+            const GLIFOS_ANEL = [
+                (g, s) => { g.beginPath(); g.moveTo(0, -s / 2); g.lineTo(s * .34, 0); g.lineTo(0, s / 2); g.lineTo(-s * .34, 0); g.closePath(); g.stroke(); g.beginPath(); g.moveTo(0, -s * .18); g.lineTo(0, s * .18); g.stroke(); },
+                (g, s) => { g.beginPath(); g.moveTo(0, -s / 2); g.lineTo(s * .38, s / 2); g.lineTo(-s * .38, s / 2); g.closePath(); g.stroke(); },
+                (g, s) => { g.beginPath(); g.moveTo(0, s / 2); g.lineTo(s * .38, -s / 2); g.lineTo(-s * .38, -s / 2); g.closePath(); g.stroke(); },
+                (g, s) => { g.beginPath(); g.moveTo(-s * .32, -s / 2); g.lineTo(s * .32, s / 2); g.moveTo(s * .32, -s / 2); g.lineTo(-s * .32, s / 2); g.stroke(); },
+                (g, s) => { for (let k = 0; k < 3; k++) { const a = k * Math.PI / 3, ca = Math.cos(a) * s * .36, sa = Math.sin(a) * s * .5; g.beginPath(); g.moveTo(-ca, -sa); g.lineTo(ca, sa); g.stroke(); } },
+                (g, s) => { g.beginPath(); g.moveTo(0, s / 2); g.lineTo(0, -s / 2); g.moveTo(-s * .3, -s * .18); g.lineTo(0, -s / 2); g.lineTo(s * .3, -s * .18); g.stroke(); },
+                (g, s) => { g.beginPath(); g.moveTo(-s * .36, -s * .08); g.lineTo(0, -s * .42); g.lineTo(s * .36, -s * .08); g.moveTo(-s * .36, s * .34); g.lineTo(0, 0); g.lineTo(s * .36, s * .34); g.stroke(); },
+                (g, s) => { g.beginPath(); g.moveTo(0, -s / 2); g.lineTo(0, s / 2); g.moveTo(-s * .32, -s * .22); g.lineTo(s * .32, -s * .22); g.moveTo(-s * .24, s * .14); g.lineTo(s * .24, s * .14); g.stroke(); },
+                (g, s) => { g.beginPath(); g.moveTo(-s * .34, -s * .3); g.lineTo(-s * .06, -s * .02); g.lineTo(s * .1, -s * .3); g.lineTo(s * .34, s * .28); g.stroke(); },
+                (g, s) => { g.beginPath(); g.moveTo(-s * .2, -s / 2); g.lineTo(-s * .2, s / 2); g.moveTo(-s * .2, -s * .05); g.lineTo(s * .34, -s * .42); g.moveTo(-s * .2, -s * .05); g.lineTo(s * .34, s * .3); g.stroke(); }
+            ];
+            function texturaBandaAnel(raioM) {
+                /* W/H altos de propósito: a faixa tem 0,26 m de largura
+                   e metros de comprimento — sem resolução ao longo do
+                   comprimento, as runas esmagam e fundem-se. */
+                const W = 8192, H = 192, cv = document.createElement('canvas');
+                cv.width = W; cv.height = H;
+                const g = cv.getContext('2d'), rnd = rngAnel(90210 + Math.round(raioM * 1000));
+                const embrulha = (x, fn) => { for (const dx of [-W, 0, W]) { g.save(); g.translate(dx, 0); fn(x); g.restore(); } };
+                /* cama escura da faixa (no ritual pintado, entre as duas
+                   linhas de ouro há uma faixa escura translúcida) */
+                const cama = g.createLinearGradient(0, 0, 0, H);
+                cama.addColorStop(0, 'rgba(24,13,3,0.45)');
+                cama.addColorStop(.07, 'rgba(31,18,5,0.92)');
+                cama.addColorStop(.5, 'rgba(46,27,9,0.95)');
+                cama.addColorStop(.93, 'rgba(31,18,5,0.92)');
+                cama.addColorStop(1, 'rgba(24,13,3,0.45)');
+                g.fillStyle = cama; g.fillRect(0, 0, W, H);
+                /* manchas de pintura: ocre queimado / ouro velho */
+                for (let i = 0; i < 30; i++) {
+                    const x = rnd() * W, y = H * (.15 + rnd() * .7), r = 80 + rnd() * 340;
+                    const tom = rnd() < .5 ? '120,72,20' : '16,8,2', al = .05 + rnd() * .08;
+                    embrulha(x, xx => {
+                        const gr = g.createRadialGradient(xx, y, 0, xx, y, r);
+                        gr.addColorStop(0, `rgba(${tom},${al})`); gr.addColorStop(1, `rgba(${tom},0)`);
+                        g.fillStyle = gr; g.fillRect(xx - r, y - r, r * 2, r * 2);
+                    });
+                }
+                /* runas douradas a brilhar entre as duas linhas.
+                   ku esmaga o desenho na horizontal para as runas
+                   saírem quadradas no mundo (a textura é muito mais
+                   comprida do que larga). */
+                const circ = 2 * Math.PI * raioM, ku = .26 * W / (H * circ);
+                const n = Math.max(16, Math.min(128, Math.round(circ / .38))), passo = W / n;
+                for (let i = 0; i < n; i++) {
+                    if (rnd() < .10) continue;   // runa gasta de todo
+                    const x = (i + .5) * passo + (rnd() - .5) * passo * .2;
+                    const y = H / 2 + (rnd() - .5) * 8, s = 148 * (.85 + rnd() * .25);
+                    const fraco = rnd() < .15 ? .45 : .85 + rnd() * .15;
+                    const glifo = GLIFOS_ANEL[Math.floor(rnd() * GLIFOS_ANEL.length)];
+                    embrulha(x, xx => {
+                        g.save(); g.translate(xx, y); g.rotate((rnd() - .5) * .09); g.scale(ku, 1);
+                        g.lineCap = 'round'; g.lineJoin = 'round'; g.globalAlpha = fraco;
+                        g.shadowColor = 'rgba(255,150,0,.85)';
+                        g.shadowBlur = 22; g.strokeStyle = 'rgba(255,166,0,.55)'; g.lineWidth = 21; glifo(g, s);
+                        g.shadowBlur = 10; g.strokeStyle = '#ffd257'; g.lineWidth = 11; glifo(g, s);
+                        g.shadowBlur = 0; g.strokeStyle = 'rgba(255,240,190,.9)'; g.lineWidth = 4; glifo(g, s);
+                        g.restore();
+                    });
+                }
+                /* as duas linhas de ouro dos bordos (levemente onduladas) */
+                for (const yc of [13, H - 13]) {
+                    const seg = 128, ond = [];
+                    const f1 = 2 + Math.floor(rnd() * 3), f2 = 5 + Math.floor(rnd() * 4), p1 = rnd() * 6.28, p2 = rnd() * 6.28;
+                    for (let i = 0; i <= seg; i++)
+                        ond.push(1.3 * Math.sin(i / seg * Math.PI * 2 * f1 + p1) + .8 * Math.sin(i / seg * Math.PI * 2 * f2 + p2));
+                    const traco = (larg, cor, blur) => {
+                        g.save(); g.lineCap = 'round'; g.lineJoin = 'round';
+                        g.strokeStyle = cor; g.lineWidth = larg;
+                        g.shadowColor = 'rgba(255,150,0,.7)'; g.shadowBlur = blur;
+                        for (let i = 0; i < seg; i++) {
+                            g.globalAlpha = .72 + rnd() * .28;
+                            g.beginPath(); g.moveTo(i / seg * W, yc + ond[i]); g.lineTo((i + 1) / seg * W, yc + ond[i + 1]); g.stroke();
+                        }
+                        g.restore();
+                    };
+                    traco(22, 'rgba(255,150,0,.30)', 18);
+                    traco(10, '#ff9e1b', 9);
+                    traco(4.5, '#ffd76a', 4);
+                    traco(2, '#fff3c0', 0);
+                }
+                /* desgaste: falhas nas linhas, um ou dois cortes maiores
+                   (como o arco gasto da referência) e manchas gastas */
+                g.globalCompositeOperation = 'destination-out';
+                for (const yc of [13, H - 13]) for (let i = 0; i < 40; i++) {
+                    const x = rnd() * W, l = 24 + rnd() * 216, a = .25 + rnd() * .55;
+                    const gr = g.createLinearGradient(x, 0, x + l, 0);
+                    gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(.5, `rgba(0,0,0,${a})`); gr.addColorStop(1, 'rgba(0,0,0,0)');
+                    g.fillStyle = gr; g.fillRect(x, yc - 11, l, 22);
+                }
+                for (let i = 0; i < 3; i++) {
+                    const yc = rnd() < .5 ? 13 : H - 13, x = rnd() * W, l = 160 + rnd() * 320;
+                    const gr = g.createLinearGradient(x, 0, x + l, 0);
+                    gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(.5, 'rgba(0,0,0,.92)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+                    g.fillStyle = gr; g.fillRect(x, yc - 12, l, 24);
+                }
+                for (let i = 0; i < 26; i++) {
+                    const x = rnd() * W, y = rnd() * H, r = 16 + rnd() * 56;
+                    const gr = g.createRadialGradient(x, y, 0, x, y, r);
+                    gr.addColorStop(0, `rgba(0,0,0,${.15 + rnd() * .35})`); gr.addColorStop(1, 'rgba(0,0,0,0)');
+                    g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2);
+                }
+                g.globalCompositeOperation = 'source-over';
+                /* riscos e grão de pintura */
+                for (let i = 0; i < 130; i++) {
+                    const x = rnd() * W, y = rnd() * H, a = (rnd() - .5) * .7, l = 36 + rnd() * 224;
+                    g.strokeStyle = rnd() < .55 ? `rgba(8,4,0,${.10 + rnd() * .14})` : `rgba(255,224,160,${.05 + rnd() * .08})`;
+                    g.lineWidth = .8 + rnd() * 1.4;
+                    g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke();
+                }
+                for (let i = 0; i < 9000; i++) {
+                    g.fillStyle = rnd() < .5 ? `rgba(0,0,0,${.04 + rnd() * .1})` : `rgba(255,216,130,${.04 + rnd() * .1})`;
+                    g.fillRect(rnd() * W, rnd() * H, 1 + rnd() * 1.6, 1 + rnd() * 1.6);
+                }
+                const tex = new T.CanvasTexture(cv);
+                tex.encoding = T.sRGBEncoding; tex.anisotropy = 4;
+                return tex;
+            }
+            function texturaDiscoAnel(raioM) {
+                const S = 1024, cv = document.createElement('canvas');
+                cv.width = S; cv.height = S;
+                const g = cv.getContext('2d'), rnd = rngAnel(41500 + Math.round(raioM * 1000));
+                /* lavagem quente suave, mais viva junto à linha */
+                const base = g.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+                base.addColorStop(0, 'rgba(255,166,0,.55)');
+                base.addColorStop(.55, 'rgba(252,152,32,.62)');
+                base.addColorStop(.82, 'rgba(240,132,22,.70)');
+                base.addColorStop(.94, 'rgba(255,182,74,.90)');
+                base.addColorStop(.985, 'rgba(255,208,112,1)');
+                base.addColorStop(1, 'rgba(146,84,16,.8)');
+                g.fillStyle = base; g.fillRect(0, 0, S, S);
+                for (let i = 0; i < 30; i++) {   // manchas de pintura
+                    const x = rnd() * S, y = rnd() * S, r = 60 + rnd() * 260;
+                    const tom = rnd() < .5 ? '120,64,14' : '255,196,92', al = .05 + rnd() * .07;
+                    const gr = g.createRadialGradient(x, y, 0, x, y, r);
+                    gr.addColorStop(0, `rgba(${tom},${al})`); gr.addColorStop(1, `rgba(${tom},0)`);
+                    g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2);
+                }
+                for (let i = 0; i < 46; i++) {   // riscos ténues
+                    const x = rnd() * S, y = rnd() * S, a = rnd() * Math.PI * 2, l = 20 + rnd() * 120;
+                    g.strokeStyle = `rgba(70,36,4,${.04 + rnd() * .06})`;
+                    g.lineWidth = .8 + rnd() * 1.6;
+                    g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke();
+                }
+                for (let i = 0; i < 12000; i++) {   // grão
+                    g.fillStyle = rnd() < .5 ? `rgba(60,30,4,${.04 + rnd() * .09})` : `rgba(255,214,120,${.04 + rnd() * .09})`;
+                    g.fillRect(rnd() * S, rnd() * S, 1 + rnd() * 1.8, 1 + rnd() * 1.8);
+                }
+                const tex = new T.CanvasTexture(cv);
+                tex.encoding = T.sRGBEncoding; tex.anisotropy = 4;
+                return tex;
+            }
+            function criaMalhasAnel(dados) {
+                const cx = wx(dados.x), cz = wz(dados.y), N = 72, hw = meiaLarguraAnel();
+                /* Faixa (não linha de 1 px): uma banda que segue o
+                   terreno — ±0,13 m na variante A; na B, a largura
+                   da pintura original com as plumas (±1,504 m). O
+                   raio CENTRAL é sempre dados.raioM, exacto. */
+                const pos = [], idx = [], uv = [];
                 for (let i = 0; i <= N; i++) {
                     const a = i / N * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a);
-                    for (const rr of [dados.raioM - .13, dados.raioM + .13]) {
+                    for (const rr of [dados.raioM - hw, dados.raioM + hw]) {
                         const px = cx + ca * rr, pz = cz + sa * rr;
                         pos.push(px, world.height(px, pz) + .045, pz);
+                        uv.push(i / N, rr < dados.raioM ? 0 : 1);
                     }
                     if (i < N) {
                         const k = i * 2;
@@ -428,19 +660,39 @@
                 }
                 const geo = new T.BufferGeometry();
                 geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
+                geo.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
                 geo.setIndex(idx);
                 const linha = new T.Mesh(geo,
-                    new T.MeshBasicMaterial({ color: 0xff9d00, transparent: true, opacity: .85, depthWrite: false, side: T.DoubleSide }));
+                    new T.MeshBasicMaterial({ map: anelArteFalhou ? texturaBandaAnel(dados.raioM) : texAnelOriginal, transparent: true, opacity: .85, depthWrite: false, side: T.DoubleSide }));
+                linha.renderOrder = 2;
                 scene.add(linha);
                 const disco = new T.Mesh(
                     new T.CircleGeometry(dados.raioM, 56),
-                    new T.MeshBasicMaterial({ color: 0xffa500, transparent: true, opacity: .14, depthWrite: false }));
+                    new T.MeshBasicMaterial({ map: anelInteriorFalhou ? texturaDiscoAnel(dados.raioM) : texAnelInterior, transparent: true, opacity: .14, depthWrite: false }));
                 disco.rotation.x = -Math.PI / 2;
                 disco.position.set(cx, world.height(cx, cz) + .03, cz);
+                disco.renderOrder = 1;
                 scene.add(disco);
-                const reg = { linha, disco, fase: Math.random() * Math.PI * 2 };
+                return { linha, disco };
+            }
+            function addRing(dados) {
+                if (!dados || !Number.isFinite(dados.x) || !Number.isFinite(dados.y)
+                    || !Number.isFinite(dados.raioM) || dados.raioM <= 0 || dados.raioM > 40)
+                    throw new TypeError('Anel inválido.');
+                valid({ x: dados.x, z: dados.y, altitude: 0 });
+                const { linha, disco } = criaMalhasAnel(dados);
+                const reg = { linha, disco, fase: Math.random() * Math.PI * 2, dados: { x: dados.x, y: dados.y, raioM: dados.raioM } };
                 aneisTeste.push(reg);
                 return reg;
+            }
+            function refazerAnel(reg) {
+                for (const obj of [reg.linha, reg.disco]) {
+                    scene.remove(obj);
+                    release(obj);
+                }
+                const { linha, disco } = criaMalhasAnel(reg.dados);
+                reg.linha = linha;
+                reg.disco = disco;
             }
             function removeRing(reg) {
                 const i = aneisTeste.indexOf(reg);
@@ -682,7 +934,7 @@
             setQualidade(options.qualidade || 'alta');
             raf = requestAnimationFrame(animate);
             const ready = Promise.all((options.units || []).map(addUnit));
-            return Object.freeze({ ready, addUnit, removeUnit, addRing, removeRing, move, select, apresentarAtaque, setCamera, setZoom, setQualidade, showMovement, on, getState: state, getStats: stats, getFrameTimes: () => times.slice(), hitTest: hit, projectUnit: id => unitRect(requireUnit(id), true), setVivo(id, vivo) {
+            return Object.freeze({ ready, addUnit, removeUnit, addRing, removeRing, setVarianteAnel, move, select, apresentarAtaque, setCamera, setZoom, setQualidade, showMovement, on, getState: state, getStats: stats, getFrameTimes: () => times.slice(), hitTest: hit, projectUnit: id => unitRect(requireUnit(id), true), setVivo(id, vivo) {
                     if (typeof vivo !== 'boolean')
                         throw new TypeError('vivo booleano');
                     const u = requireUnit(id);
