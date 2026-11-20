@@ -735,6 +735,237 @@
    "alturaAlvo": 1.8,
    "pedestal": 0,
    "familia": "teste"
+  },
+  {
+   "ficheiro": "modelos/mapa-teste-15m.glb",
+   "nome": "Mapa de Teste — versão 1 (15 m)",
+   "etiqueta": "Mapa de Teste — versão 1 (15 m) — as voltas vivem no Godot",
+   "pos": [
+    0,
+    -54
+   ],
+   "rotY": 0,
+   "alturaAlvo": null,
+   "pedestal": 0,
+   "familia": "mapa"
+  },
+  {
+   "ficheiro": "modelos/galeria/ong-studio.glb",
+   "nome": "Ong Mefita — Studio (teste)",
+   "etiqueta": "Ong Mefita — modelo de teste do Studio · NÃO é a Ong definitiva (referência reprovada pelo Mestre)",
+   "pos": [
+    19.6,
+    -4.45
+   ],
+   "rotY": 0,
+   "alturaAlvo": 1.8,
+   "pedestal": 0,
+   "familia": "criaturas",
+   "medidas_m": [
+    0.89,
+    1.159,
+    0.304
+   ]
+  },
+  {
+   "ficheiro": "modelos/galeria/bushi-studio.glb",
+   "nome": "Bushi — Studio",
+   "etiqueta": "Bushi — modelo do Studio · figura aprovada pelo Mestre",
+   "pos": [
+    24.4,
+    -4.45
+   ],
+   "rotY": 0,
+   "alturaAlvo": 1.7,
+   "pedestal": 0,
+   "familia": "criaturas",
+   "medidas_m": [
+    0.913,
+    1.146,
+    0.355
+   ]
+  }
+ ],
+ "paineis": [
+  {
+   "tipo": "foto",
+   "ficheiro": "paineis/voltas.png",
+   "pos": [
+    -14.8,
+    -52
+   ],
+   "largura": 7.6,
+   "altura": 3.07,
+   "pe": 0.5
+  },
+  {
+   "tipo": "gif",
+   "ficheiro": "paineis/efeitos/heal.webp",
+   "pos": [
+    11.5,
+    -47.5
+   ],
+   "largura": 1.6,
+   "altura": 0.9,
+   "pe": 0.8,
+   "legenda": "Cura — Combat & Magic · 5.812 px no pico",
+   "quadros": 10
+  },
+  {
+   "tipo": "gif",
+   "ficheiro": "paineis/efeitos/flame_slash.webp",
+   "pos": [
+    15.3,
+    -47.5
+   ],
+   "largura": 1.6,
+   "altura": 0.9,
+   "pe": 0.8,
+   "legenda": "Corte de Chama — Vol. 2 · 1.784 px no pico",
+   "quadros": 10
+  },
+  {
+   "tipo": "gif",
+   "ficheiro": "paineis/efeitos/slash_swipe.webp",
+   "pos": [
+    19.1,
+    -47.5
+   ],
+   "largura": 1.6,
+   "altura": 0.9,
+   "pe": 0.8,
+   "legenda": "Corte — Combat & Magic · 898 px no pico",
+   "quadros": 10
+  },
+  {
+   "tipo": "gif",
+   "ficheiro": "paineis/efeitos/snowball_hit.webp",
+   "pos": [
+    22.9,
+    -47.5
+   ],
+   "largura": 1.6,
+   "altura": 0.9,
+   "pe": 0.8,
+   "legenda": "Bola de Neve — Ice/Frost · 662 px no pico",
+   "quadros": 10
+  },
+  {
+   "tipo": "gif",
+   "ficheiro": "paineis/efeitos/ice_hit.webp",
+   "pos": [
+    26.7,
+    -47.5
+   ],
+   "largura": 1.6,
+   "altura": 0.9,
+   "pe": 0.8,
+   "legenda": "Impacto de Gelo — Ice/Frost · 454 px no pico",
+   "quadros": 10
+  },
+  {
+   "tipo": "gif",
+   "ficheiro": "paineis/efeitos/leaf_burst.webp",
+   "pos": [
+    30.5,
+    -47.5
+   ],
+   "largura": 1.6,
+   "altura": 0.9,
+   "pe": 0.8,
+   "legenda": "Explosão de Folhas — Nature/Earth · 378 px no pico",
+   "quadros": 10
+  },
+  {
+   "tipo": "gif",
+   "ficheiro": "paineis/efeitos/fireball.webp",
+   "pos": [
+    34.3,
+    -47.5
+   ],
+   "largura": 1.6,
+   "altura": 0.9,
+   "pe": 0.8,
+   "legenda": "Bola de Fogo — Combat & Magic · 373 px no pico",
+   "quadros": 10
+  },
+  {
+   "tipo": "gif",
+   "ficheiro": "paineis/efeitos/hit_spark.webp",
+   "pos": [
+    38.1,
+    -47.5
+   ],
+   "largura": 1.6,
+   "altura": 0.9,
+   "pe": 0.8,
+   "legenda": "Faísca do Golpe — Combat & Magic · 305 px no pico",
+   "quadros": 10
+  },
+  {
+   "tipo": "gif",
+   "ficheiro": "paineis/efeitos/shadow_bolt.webp",
+   "pos": [
+    41.9,
+    -47.5
+   ],
+   "largura": 1.6,
+   "altura": 0.9,
+   "pe": 0.8,
+   "legenda": "Raio de Sombra — Vol. 2 · 178 px no pico",
+   "quadros": 10
+  },
+  {
+   "tipo": "gif",
+   "ficheiro": "paineis/efeitos/frost_bolt.webp",
+   "pos": [
+    45.7,
+    -47.5
+   ],
+   "largura": 1.6,
+   "altura": 0.9,
+   "pe": 0.8,
+   "legenda": "Raio de Gelo — Ice/Frost · 132 px no pico",
+   "quadros": 10
+  },
+  {
+   "tipo": "gif",
+   "ficheiro": "paineis/efeitos/rock_hit.webp",
+   "pos": [
+    49.5,
+    -47.5
+   ],
+   "largura": 1.6,
+   "altura": 0.9,
+   "pe": 0.8,
+   "legenda": "Impacto de Rocha — Nature/Earth · 108 px no pico",
+   "quadros": 10
+  },
+  {
+   "tipo": "gif",
+   "ficheiro": "paineis/efeitos/rock_throw.webp",
+   "pos": [
+    53.3,
+    -47.5
+   ],
+   "largura": 1.6,
+   "altura": 0.9,
+   "pe": 0.8,
+   "legenda": "Rocha Arremessada — Nature/Earth · 60 px no pico",
+   "quadros": 10
+  },
+  {
+   "tipo": "gif",
+   "ficheiro": "paineis/efeitos/muzzle_flash.webp",
+   "pos": [
+    57.1,
+    -47.5
+   ],
+   "largura": 1.6,
+   "altura": 0.9,
+   "pe": 0.8,
+   "legenda": "Clarão do Tiro — Vol. 2 · 59 px no pico",
+   "quadros": 10
   }
  ]
 }

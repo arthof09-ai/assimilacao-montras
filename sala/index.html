@@ -443,6 +443,7 @@
   window.__salaOlhar = olharPara; // câmara livre por coordenadas (capturas)
 
   let ultimo = performance.now();
+  let quadroGif = 0;
   function ciclo(agora) {
     requestAnimationFrame(ciclo);
     const dt = Math.min(0.05, (agora - ultimo) / 1000); ultimo = agora;
@@ -464,6 +465,19 @@
     const sobe = ctrl.sobe + ((t['e'] || t['pageup']) ? 1 : 0) - ((t['q'] || t['pagedown']) ? 1 : 0);
     if (sobe) ctrl.pos.y = THREE.MathUtils.clamp(ctrl.pos.y + sobe * 3.0 * velMul * dt, 0.4, 17);
     aplicarCamara();
+    // painéis de efeitos: redesenhar os GIFs (um quadro sim, um não)
+    if ((quadroGif++ % 2) === 0) {
+      for (const a of paineisAnimados) {
+        if (a.img.complete && a.img.naturalWidth) {
+          /* a imagem é uma TIRA com os quadros do efeito lado a lado;
+           * o relógio escolhe o quadro (80 ms cada) — o ciclo anda
+           * em qualquer navegador, sem depender da animação do GIF */
+          const qi = Math.floor(agora / 80) % (a.quadros || 10);
+          a.g.drawImage(a.img, qi * 480, 0, 480, 270, 0, 0, 480, 270);
+          a.tex.needsUpdate = true;
+        }
+      }
+    }
     // vagalumes: acordam quando o sol cai, apagam-se de dia
     {
       const alvoOp = sol.intensity < 0.45 ? 0.9 : 0;
@@ -515,6 +529,84 @@
     scene.add(grp);
   }
 
+  /* ---- painéis: quadros em pé no chão (fotos e GIFs a girar) ----
+   * Ala do mapa de teste (12/11/2026): o painel das voltas e a sala
+   * de efeitos vivem em quadros com a mesma linguagem das etiquetas
+   * — fundo escuro, letra clara, pé de metal. O manifesto pode
+   * trazer "paineis": [{tipo:"foto"|"gif", ficheiro, pos:[x,z],
+   * largura, altura, pe, legenda}] e a legenda de cada GIF é a
+   * placa de nome de sempre (etiqueta), posta em frente do quadro. */
+  const paineisAnimados = [];
+  let paineisCarregados = 0;
+  function quadroPainel(largura, altura, pe) {
+    const grp = new THREE.Group();
+    const moldura = new THREE.Mesh(new THREE.BoxGeometry(largura + 0.18, altura + 0.18, 0.07),
+      new THREE.MeshStandardMaterial({ color: 0x2e3a40, roughness: 0.85 }));
+    moldura.position.y = pe + altura / 2;
+    moldura.castShadow = true; moldura.receiveShadow = true;
+    grp.add(moldura);
+    [-1, 1].forEach(s => {
+      const perna = new THREE.Mesh(new THREE.BoxGeometry(0.09, pe, 0.09),
+        new THREE.MeshStandardMaterial({ color: 0x4a545a, roughness: 0.8 }));
+      perna.position.set(s * (largura / 2 - 0.3), pe / 2, 0);
+      perna.castShadow = true;
+      grp.add(perna);
+    });
+    const frente = new THREE.Mesh(new THREE.PlaneGeometry(largura, altura),
+      new THREE.MeshStandardMaterial({ roughness: 0.9 }));
+    frente.position.set(0, pe + altura / 2, 0.045);
+    grp.add(frente);
+    return { grp, frente };
+  }
+  function painelFoto(p) {
+    const q = quadroPainel(p.largura, p.altura, p.pe || 0);
+    new THREE.TextureLoader().load(p.ficheiro, tex => {
+      tex.encoding = THREE.sRGBEncoding;
+      tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      q.frente.material.map = tex;
+      q.frente.material.needsUpdate = true;
+      paineisCarregados++; stats.paineisCarregados = paineisCarregados;
+    }, undefined, () => {
+      stats.erros.push('painel: ' + p.ficheiro);
+      paineisCarregados++; stats.paineisCarregados = paineisCarregados;
+    });
+    q.grp.position.set(p.pos[0], 0, p.pos[1]);
+    scene.add(q.grp);
+    (stats.grupos = stats.grupos || []).push(q.grp);
+  }
+  /* os <img> dos GIFs vivem num canto invisível do DOM: fora dele,
+   * há navegadores que não fazem a animação andar (a moldura fica
+   * presa no primeiro quadro) */
+  const gifsOcultos = document.createElement('div');
+  gifsOcultos.style.cssText = 'position:fixed;left:0;bottom:0;width:2px;height:2px;overflow:hidden;opacity:0.01;pointer-events:none;z-index:-1';
+  document.body.appendChild(gifsOcultos);
+  function painelGif(p) {
+    const q = quadroPainel(p.largura, p.altura, p.pe || 0);
+    const cv = document.createElement('canvas'); cv.width = 480; cv.height = 270;
+    const g = cv.getContext('2d');
+    g.fillStyle = '#20262a'; g.fillRect(0, 0, 480, 270);
+    const tex = new THREE.CanvasTexture(cv);
+    tex.encoding = THREE.sRGBEncoding;
+    q.frente.material.map = tex;
+    const img = new Image();
+    img.onload = () => { paineisCarregados++; stats.paineisCarregados = paineisCarregados; };
+    img.onerror = () => {
+      stats.erros.push('gif: ' + p.ficheiro);
+      paineisCarregados++; stats.paineisCarregados = paineisCarregados;
+    };
+    img.src = p.ficheiro;
+    gifsOcultos.appendChild(img);
+    paineisAnimados.push({ img, g, tex, quadros: p.quadros || 10 });
+    q.grp.position.set(p.pos[0], 0, p.pos[1]);
+    scene.add(q.grp);
+    (stats.grupos = stats.grupos || []).push(q.grp);
+    if (p.legenda) etiqueta(p.legenda, p.pos[0], p.pos[1] + (p.placaZ || 1.15));
+  }
+  function carregarPaineis(lista) {
+    stats.paineis = lista.length; stats.paineisCarregados = 0;
+    lista.forEach(p => { if (p.tipo === 'gif') painelGif(p); else painelFoto(p); });
+  }
+
   /* ---- indicador de carga: peças contadas uma a uma ---- */
   const elCarga = document.getElementById('carga');
   const elCargaNum = elCarga.querySelector('.num');
@@ -543,6 +635,7 @@
     sol.shadow.camera.updateProjectionMatrix();
     if (man.alvoVista) alvo.set(man.alvoVista[0], 0, man.alvoVista[1]);
     if (man.regua) regua(man.regua.pos[0], man.regua.pos[1], man.regua.altura || 15);
+    if (man.paineis) carregarPaineis(man.paineis);
     const loader = new THREE.GLTFLoader();
     let pendentes = man.itens.length;
     cargaTotal = pendentes; cargaFeitas = 0; mostraCarga();
